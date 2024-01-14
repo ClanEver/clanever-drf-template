@@ -1,4 +1,4 @@
-# ClanEver Django Template
+# ClanEver DRF Template
 
 Powered by [cookiecutter](https://github.com/cookiecutter/cookiecutter)
 
