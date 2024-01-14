@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from .views.{{ cookiecutter.model_name_snake }} import {{ cookiecutter.model_name }}ViewSet
+from {{ cookiecutter.app_name }}.views.{{ cookiecutter.model_name_snake }} import {{ cookiecutter.model_name }}ViewSet
 
 router = routers.DefaultRouter()
 

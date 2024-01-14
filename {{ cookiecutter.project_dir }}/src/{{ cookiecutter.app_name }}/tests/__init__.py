@@ -1,1 +1,1 @@
-from .auth import {{ cookiecutter.model_name }}Tests, {{ cookiecutter.model_name }}ViewSetTests
+from {{ cookiecutter.app_name }}.tests.{{ cookiecutter.model_name_snake }} import NewModelTests, NewModelViewSetTests
