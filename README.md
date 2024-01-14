@@ -16,7 +16,7 @@ rye install cookiecutter --extra-requirement jinja2-strcase
 
 use this template
 ```shell
-cookiecutter 
+cookiecutter https://github.com/ClanEver/clanever-drf-template.git
 ```
 
 ## License
