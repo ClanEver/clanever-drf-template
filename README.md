@@ -11,7 +11,7 @@ install cookiecutter
 pip install cookiecutter jinja2-strcase
 ```
 
-or use rye to install
+or use [rye](https://github.com/mitsuhiko/rye) to install
 ```shell
 rye install cookiecutter --extra-requirement jinja2-strcase
 ```
