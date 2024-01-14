@@ -1,3 +1,4 @@
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
@@ -6,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from auth_app.serializers.auth import LoginSerializer, RegisterSerializer
+from auth_app.serializers.auth import RegisterSerializer
 
 
 class RegisterView(APIView):
@@ -24,15 +25,5 @@ class RegisterView(APIView):
         )
 
 
-class LoginView(APIView):
+class LoginView(ObtainAuthToken):
     permission_classes = [AllowAny]
-    serializer_class = LoginSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        token = serializer.save()
-        return Response({
-                "token": token
-            },
-            status=HTTP_200_OK
-        )

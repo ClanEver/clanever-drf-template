@@ -13,6 +13,5 @@ urlpatterns = [
     # path('', include(router.urls)),
     # path('example/', ExampleViewAPI.as_view(), name='example'),
     path('token/', obtain_auth_token, name='token'),
-    path('register/', RegisterView.as_view(), name='token'),
-    path('login/', LoginView.as_view(), name='token'),
+    path('register/', RegisterView.as_view(), name='register'),
 ]
