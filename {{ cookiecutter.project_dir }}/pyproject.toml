@@ -1,0 +1,36 @@
+[project]
+name = "{{ cookiecutter.project_name|trim() }}"
+version = "0.1.0"
+description = "{{ cookiecutter.description }}"
+dependencies = [
+    "django~=4.2.8",
+    "djangorestframework~=3.14.0",
+    "django-filter~=23.5",
+    "django-postgres-extra~=2.0.8",
+    "gunicorn>=21.2.0",
+]
+readme = "README.md"
+requires-python = ">= 3.11"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.rye.scripts]
+dev_run = { cmd = "python manage.py runserver", env = { DJANGO_CONFIG = "dev" } }
+dev_makem = { cmd = "python manage.py makemigrations", env = { DJANGO_CONFIG = "dev" } }
+dev_migrate = { cmd = "python manage.py migrate", env = { DJANGO_CONFIG = "dev" } }
+dev_mnm = { chain = ["dev_makem", "dev_migrate" ] }
+dev_cu = { cmd = "python manage.py createsuperuser", env = { DJANGO_CONFIG = "dev" } }
+
+rung = { cmd = "gunicorn -c gunicorn_config.py {{ cookiecutter.project_slug }}.wsgi", env = { DJANGO_CONFIG = "prod" } }
+start = { cmd = "bash scripts/start.sh", env = { DJANGO_CONFIG = "prod" } }
+stop = { cmd = "bash scripts/stop.sh", env = { DJANGO_CONFIG = "prod" } }
+restart = { cmd = "bash scripts/restart.sh", env = { DJANGO_CONFIG = "prod" } }

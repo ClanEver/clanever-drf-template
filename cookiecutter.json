@@ -1,0 +1,15 @@
+{
+    "project_name": "my-django-project",
+    "project_dir": "{{ cookiecutter.project_name.lower()|replace(' ', '-')|trim() }}",
+    "project_slug": "{{ cookiecutter.project_name.lower()|replace(' ', '_')|replace('-', '_')|replace('.', '_')|trim() }}",
+    "description": "Behold My Awesome Django Project!",
+    "author_name": "Anonymous",
+    "gunicorn_timeout": "30",
+    "gunicorn_workers_num": "multiprocessing.cpu_count() * 2 + 1",
+    "app_name": "my_app",
+    "model_name": "MyModel",
+    "model_name_snake": "{{ cookiecutter.model_name|to_snake }}",
+    "_extensions": [
+        "jinja2_strcase.StrcaseExtension"
+    ]
+}
