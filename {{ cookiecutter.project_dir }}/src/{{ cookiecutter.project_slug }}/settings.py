@@ -206,6 +206,22 @@ SPECTACULAR_SETTINGS = {
 }
 
 
+# email config -> https://docs.djangoproject.com/zh-hans/5.0/ref/settings/#email-backend
+EMAIL_BACKEND = ('django.core.mail.backends.smtp.EmailBackend'
+                 if not DEBUG
+                 else 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = 'localhost'
+EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = ''
+EMAIL_PORT = ''
+EMAIL_SUBJECT_PREFIX = '[Django] '
+EMAIL_USE_LOCALTIME = True
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = False
+EMAIL_SSL_CERTFILE = None
+EMAIL_SSL_KEYFILE = None
+
+
 # allauth
 # regular account config doc -> https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_PASSWORD_MIN_LENGTH = 6 if not DEBUG else 3
