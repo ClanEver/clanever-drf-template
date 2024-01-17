@@ -225,7 +225,8 @@ EMAIL_SSL_KEYFILE = None
 # allauth
 # regular account config doc -> https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_PASSWORD_MIN_LENGTH = 6 if not DEBUG else 3
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # 是否发消息
+# 是否发邮件: mandatory-发邮件且必须验证才能登录, optional-发邮件, none-不发
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_CHANGE_EMAIL = True
 
 
