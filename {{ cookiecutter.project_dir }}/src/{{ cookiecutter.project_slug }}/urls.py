@@ -16,9 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
     path('api/auth/', include('auth_app.urls'), name='auth'),
     path('api/{{ cookiecutter.app_name }}/', include('{{ cookiecutter.app_name }}.urls'), name='{{ cookiecutter.app_name }}'),
 ]
+
+if settings.DEBUG:
+    from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+
+    urlpatterns.extend([
+        path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+        path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+        path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    ])

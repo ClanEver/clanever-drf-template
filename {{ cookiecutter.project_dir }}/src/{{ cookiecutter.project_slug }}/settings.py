@@ -62,6 +62,7 @@ config = {
     'prod': ProdConfig,
 }.get(DJANGO_CONFIG)
 
+
 # ---------------- django设置 ----------------
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -74,8 +75,9 @@ DEBUG = config.DEBUG
 
 ALLOWED_HOSTS = []
 
-# Application definition
 
+# Application definition
+SITE_ID = 1
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -86,6 +88,12 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
+    'allauth',
+    'allauth.account',
+    'dj_rest_auth.registration',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
+
     'auth_app',
     '{{ cookiecutter.app_name }}',
 ]
@@ -98,6 +106,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = '{{ cookiecutter.project_slug }}.urls'
@@ -120,10 +129,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = '{{ cookiecutter.project_slug }}.wsgi.application'
 
+
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = config.DATABASES
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -141,7 +152,8 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
-]
+] if not DEBUG else []
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -156,6 +168,7 @@ USE_L10N = True
 
 USE_TZ = False
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
@@ -166,6 +179,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "auth_app.User"
+
 
 # REST_FRAMEWORK
 REST_FRAMEWORK = {
@@ -180,6 +194,24 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 10,
 }
+
+
+# drf-spectacular
+SPECTACULAR_SETTINGS = {
+    'TITLE': '{{ cookiecutter.project_name }} API',
+    'DESCRIPTION': '{{ cookiecutter.description }}',
+    'VERSION': '0.1.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # OTHER SETTINGS
+}
+
+
+# allauth
+# regular account config doc -> https://docs.allauth.org/en/latest/account/configuration.html
+ACCOUNT_PASSWORD_MIN_LENGTH = 6 if not DEBUG else 3
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # 是否发消息
+ACCOUNT_CHANGE_EMAIL = True
+
 
 # LOG
 LOG_PATH = config.LOG_PATH
