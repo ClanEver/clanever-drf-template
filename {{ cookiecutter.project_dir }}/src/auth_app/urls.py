@@ -12,6 +12,6 @@ router = routers.DefaultRouter()
 urlpatterns = [
     # path('', include(router.urls)),
     # path('example/', ExampleViewAPI.as_view(), name='example'),
-    path('token/', obtain_auth_token, name='token'),
-    path('register/', RegisterView.as_view(), name='register'),
+    path('', include('dj_rest_auth.urls')),
+    path('register/', include('dj_rest_auth.registration.urls')),
 ]

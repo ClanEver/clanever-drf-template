@@ -8,22 +8,3 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from auth_app.serializers.auth import RegisterSerializer
-
-
-class RegisterView(APIView):
-    permission_classes = [AllowAny]
-    serializer_class = RegisterSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        user = serializer.save()
-        return Response(
-            {
-                "id": user.username
-            },
-            status=HTTP_200_OK
-        )
-
-
-class LoginView(ObtainAuthToken):
-    permission_classes = [AllowAny]
