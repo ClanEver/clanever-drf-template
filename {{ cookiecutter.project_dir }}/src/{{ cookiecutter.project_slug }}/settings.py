@@ -93,7 +93,10 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
     'drf_spectacular',
     'drf_spectacular_sidecar',
+    'django_celery_results',
+    'django_celery_beat',
 
+    # your app
     'auth_app',
     '{{ cookiecutter.app_name }}',
 ]
@@ -229,6 +232,13 @@ ACCOUNT_PASSWORD_MIN_LENGTH = 6 if not DEBUG else 3
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_CHANGE_EMAIL = True
 
+
+# Celery Config
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_CACHE_BACKEND = 'default'
 
 # LOG
 LOG_PATH = config.LOG_PATH
