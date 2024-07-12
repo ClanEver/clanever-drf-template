@@ -60,7 +60,7 @@ def set_django_secret_key(file_path):
 
 
 def main():
-    production_django_envs_path = "src/{{cookiecutter.project_slug}}/settings.py"
+    production_django_envs_path = "{{cookiecutter.project_slug}}/settings.py"
     set_django_secret_key(production_django_envs_path)
 
 
