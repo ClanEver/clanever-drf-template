@@ -30,7 +30,7 @@ startapp = { cmd = "cookiecutter https://github.com/ClanEver/clanever-drf-app-te
 dev_run = { cmd = "python manage.py runserver", env = { DJANGO_CONFIG = "dev" } }
 dev_makem = { cmd = "python manage.py makemigrations", env = { DJANGO_CONFIG = "dev" } }
 dev_migrate = { cmd = "python manage.py migrate", env = { DJANGO_CONFIG = "dev" } }
-dev_mnm = { chain = ["dev_makem", "dev_migrate" ] }
+dev_mnm = { chain = ["dev_makem", "dev_migrate"] }
 dev_cu = { cmd = "python manage.py createsuperuser", env = { DJANGO_CONFIG = "dev" } }
 dev_c_beat = { cmd = "celery -A proj beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler", env = { DJANGO_CONFIG = "dev" } }
 dev_c_worker = { cmd = "celery -A proj worker -l INFO -c 4", env = { DJANGO_CONFIG = "dev" } }
@@ -40,3 +40,7 @@ rung = { cmd = "gunicorn -c gunicorn_config.py {{ cookiecutter.project_slug }}.w
 start = { cmd = "bash scripts/start.sh", env = { DJANGO_CONFIG = "prod" } }
 stop = { cmd = "bash scripts/stop.sh", env = { DJANGO_CONFIG = "prod" } }
 restart = { cmd = "bash scripts/restart.sh", env = { DJANGO_CONFIG = "prod" } }
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

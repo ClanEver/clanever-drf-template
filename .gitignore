@@ -14,6 +14,7 @@ wheels/
 .idea/
 .vscode/
 .git/
+.zed/
 logs/
-src/db.sqlite[3]
+*.sqlite[3]
 test/
