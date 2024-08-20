@@ -23,6 +23,8 @@ cookiecutter https://github.com/ClanEver/clanever-drf-template.git
 
 use app template
 ```shell
+rye run startapp
+# or
 cookiecutter https://github.com/ClanEver/clanever-drf-app-template.git
 ```
 
