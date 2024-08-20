@@ -3,18 +3,23 @@ name = "{{ cookiecutter.project_name|trim() }}"
 version = "0.1.0"
 description = "{{ cookiecutter.description }}"
 dependencies = [
-    "django~=4.2.9",
-    "djangorestframework~=3.14.0",
-    "django-filter~=23.5",
-    "django-postgres-extra~=2.0.8",
-    "gunicorn~=21.2.0",
-    "django-allauth~=0.60.1",
-    "dj-rest-auth~=5.0.2",
-    "drf-spectacular[sidecar]~=0.27.0",
-    "celery~=5.3.6",
-    "django-celery-results~=2.5.1",
-    "django-celery-beat~=2.5.0",
-    "flower~=2.0.1",
+    "celery",
+    "dj-rest-auth",
+    "django",
+    "django-allauth",
+    "django-celery-beat",
+    "django-celery-results",
+    "django-filter",
+    "django-postgres-extra",
+    "djangorestframework",
+    "drf-spectacular[sidecar]",
+    "flower",
+    "gunicorn",
+    "more-itertools",
+    "msgspec",
+    "psycopg[binary,pool]",
+    "requests",
+    "tenacity",
 ]
 readme = "README.md"
 requires-python = "~= 3.11"

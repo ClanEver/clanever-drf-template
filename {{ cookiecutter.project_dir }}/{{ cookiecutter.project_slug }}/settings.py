@@ -51,6 +51,14 @@ class ProdConfig(__BaseConfig):
             "PASSWORD": "mypassword",
             "HOST": "127.0.0.1",
             "PORT": "5432",
+            "OPTIONS": {
+                # 连接池参数参考 https://www.psycopg.org/psycopg3/docs/api/pool.html#the-connectionpool-class
+                "pool": {
+                    "min_size": 2,
+                    "max_size": 10,
+                    "timeout": 10,
+                }
+            },
         }
     }
 
@@ -90,6 +98,7 @@ INSTALLED_APPS = [
     'django_filters',
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
     'dj_rest_auth.registration',
     'drf_spectacular',
     'drf_spectacular_sidecar',
@@ -196,6 +205,15 @@ REST_FRAMEWORK = {
     # pagination
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 10,
+    # msgspec
+    'DEFAULT_RENDERER_CLASSES': [
+        'utils.drf_msgspec_json.MsgspecJSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'utils.drf_msgspec_json.MsgspecJSONParser',
+    ],
+    # drf-spectacular
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 

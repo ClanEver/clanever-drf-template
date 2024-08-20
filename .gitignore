@@ -17,4 +17,4 @@ wheels/
 .zed/
 logs/
 *.sqlite[3]
-test/
+test_dir/

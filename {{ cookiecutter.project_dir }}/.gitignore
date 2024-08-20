@@ -16,4 +16,4 @@ wheels/
 .git/
 logs/
 src/db.sqlite[3]
-test/
+test_dir/
