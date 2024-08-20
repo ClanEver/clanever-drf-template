@@ -21,6 +21,15 @@ use this template
 cookiecutter https://github.com/ClanEver/clanever-drf-template.git
 ```
 
+use app template
+```shell
+cookiecutter https://github.com/ClanEver/clanever-drf-app-template.git
+```
+
+## Relation
+
+[clanever-drf-app-template](https://github.com/ClanEver/clanever-drf-app-template/)
+
 ## License
 
 [MIT](./LICENSE)
