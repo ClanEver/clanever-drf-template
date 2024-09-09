@@ -223,6 +223,9 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': '{{ cookiecutter.description }}',
     'VERSION': '0.1.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
     # OTHER SETTINGS
 }
 
