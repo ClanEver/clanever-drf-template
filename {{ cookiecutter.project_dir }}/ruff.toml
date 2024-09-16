@@ -44,7 +44,6 @@ select = [
     "E",     # pycodestyle errors
     "W",     # pycodestyle warnings
     "F",     # pyflakes
-    "I",     # isort
     "A",     # flake8-builtins
     "B",     # flake8-bugbear
     "C4",    # flake8-comprehensions
@@ -83,8 +82,9 @@ select = [
     "C90",    # mccabe 检测函数缩进复杂度
 ]
 ignore = [
-    "RUF002",  # 不明确的 unicode 字符文档字符串
-    "RUF003",  # 不明确的 unicode 字符注释
+    "RUF001", # 字符串包含不明确的 unicode 字符
+    "RUF002", # 文档字符串包含不明确的 unicode 字符
+    "RUF003", # 注释包含不明确的 unicode 字符
     # "F401",  # imported but unused
 ]
 
