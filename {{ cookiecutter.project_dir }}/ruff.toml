@@ -30,11 +30,8 @@ exclude = [
     "venv",
 ]
 
-# Same as Black.
 line-length = 120
 indent-width = 4
-
-# Assume Python 3.12
 target-version = "py312"
 
 [lint]
@@ -82,9 +79,10 @@ select = [
     "C90",    # mccabe 检测函数缩进复杂度
 ]
 ignore = [
-    "RUF001", # 字符串包含不明确的 unicode 字符
-    "RUF002", # 文档字符串包含不明确的 unicode 字符
-    "RUF003", # 注释包含不明确的 unicode 字符
+    "RUF001",  # 字符串包含不明确的 unicode 字符
+    "RUF002",  # 文档字符串包含不明确的 unicode 字符
+    "RUF003",  # 注释包含不明确的 unicode 字符
+    "PLR2004", # 使用未命名的数字常量
     # "F401",  # imported but unused
 ]
 
@@ -101,19 +99,19 @@ ban-relative-imports = "all"
 
 # https://docs.astral.sh/ruff/rules/complex-structure/
 [lint.mccabe]
-max-complexity = 5
+max-complexity = 20
 
 [format]
-# 与 Black 一致，对字符串使用双引号。
+# 对字符串使用双引号。
 quote-style = "double"
 
-# 与 Black 一致，使用空格而不是制表符进行缩进。
+# 使用空格而不是制表符进行缩进。
 indent-style = "space"
 
-# 与 Black 一致，尊重魔术尾随逗号。
+# 尊重魔术尾随逗号。
 skip-magic-trailing-comma = false
 
-# 与 Black 一致，自动检测适当的行尾。
+# 自动检测适当的行尾。
 line-ending = "auto"
 
 # 启用文档字符串中代码示例的自动格式化。支持 Markdown、
