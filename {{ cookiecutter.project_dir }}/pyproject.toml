@@ -13,14 +13,15 @@ dependencies = [
     "django-postgres-extra",
     "djangorestframework",
     "drf-spectacular[sidecar]",
+    "django-structlog",
     "flower",
     "gunicorn",
     "more-itertools",
     "msgspec",
     "psycopg[binary,pool]",
     "requests",
+    "rich",
     "tenacity",
-    "structlog",
 ]
 readme = "README.md"
 requires-python = "~= 3.11"

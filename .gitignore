@@ -18,3 +18,4 @@ wheels/
 logs/
 *.sqlite[3]
 test_dir/
+test_dev/
