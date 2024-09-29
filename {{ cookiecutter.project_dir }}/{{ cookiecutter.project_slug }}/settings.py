@@ -9,6 +9,8 @@ https://docs.djangoproject.com/zh-hans/5.1/ref/settings/
 import os
 from pathlib import Path
 
+import structlog
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -262,93 +264,123 @@ CELERY_CACHE_BACKEND = 'default'
 # LOG
 LOG_PATH = config.LOG_PATH
 LOG_PATH.mkdir(parents=True, exist_ok=True)
+LOG_LEVEL = 'INFO'
+DJANGO_STRUCTLOG_CELERY_ENABLED = True
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'standard': {
-            'format': '%(levelname)s %(asctime)s %(filename)s %(module)s %(funcName)s %(message)s'
+        'json_formatter': {
+            '()': structlog.stdlib.ProcessorFormatter,
+            'processor': structlog.processors.JSONRenderer(),
+            # 'processor': MsgspecJSONRenderer(),
         },
-        'simple': {
-            'format': '%(levelname)s %(asctime)s %(message)s'
+        'plain_console': {
+            '()': structlog.stdlib.ProcessorFormatter,
+            'processor': structlog.dev.ConsoleRenderer(),
+        },
+        'key_value': {
+            '()': structlog.stdlib.ProcessorFormatter,
+            'processor': structlog.processors.KeyValueRenderer(key_order=['timestamp', 'level', 'event', 'logger']),
         },
     },
-    'filters': {
-    },
+    'filters': {},
     'handlers': {
-        'access_file_handler': {
-            'level': 'INFO',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': '%s/access.log' % LOG_PATH,
-            'formatter': 'simple',
-            'backupCount': 100,
-            'when': 'D'
+        # 'json_file': {
+        #     'level': LOG_LEVEL,
+        #     'formatter': 'json_formatter',
+        #     'class': 'utils.log.DayRotateHandlerWithThread',
+        #     'file_name': LOG_PATH / 'json.log',
+        #     'backup_count': 15,
+        #     'when': 'day',
+        # },
+        'django_file': {
+            'level': LOG_LEVEL,
+            'formatter': 'key_value',
+            'class': 'utils.log.DayRotateHandlerWithThread',
+            'file_name': LOG_PATH / 'django.log',
+            'backup_count': 15,
+            'when': 'day',
         },
-        'api_handler': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': '%s/api.log' % LOG_PATH,
-            'formatter': 'standard',
-            'backupCount': 100,
-            'when': 'D'
+        'api_file': {
+            'level': LOG_LEVEL,
+            'formatter': 'key_value',
+            'class': 'utils.log.DayRotateHandlerWithThread',
+            'file_name': LOG_PATH / 'api.log',
+            'backup_count': 15,
+            'when': 'day',
         },
-        'db_handler': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': '%s/sql.log' % LOG_PATH,
-            'formatter': 'simple',
-            'backupCount': 100,
-            'when': 'D'
+        'db_file': {
+            'level': LOG_LEVEL,
+            'formatter': 'key_value',
+            'class': 'utils.log.DayRotateHandlerWithThread',
+            'file_name': LOG_PATH / 'db.log',
+            'backup_count': 15,
+            'when': 'day',
         },
-        'worker_handler': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': '%s/worker.log' % LOG_PATH,
-            'formatter': 'simple',
-            'backupCount': 100,
-            'when': 'D'
+        'beat_file': {
+            'level': LOG_LEVEL,
+            'formatter': 'key_value',
+            'class': 'utils.log.DayRotateHandlerWithThread',
+            'file_name': LOG_PATH / 'beat.log',
+            'backup_count': 15,
+            'when': 'day',
+        },
+        'worker_file': {
+            'level': LOG_LEVEL,
+            'formatter': 'key_value',
+            'class': 'utils.log.DayRotateHandlerWithThread',
+            'file_name': LOG_PATH / 'worker.log',
+            'backup_count': 15,
+            'when': 'day',
         },
         'console': {
-            'level': 'INFO',
+            'level': LOG_LEVEL,
             'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'api_console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'standard'
-        },
-        'db_console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'standard'
-        },
-        'worker_console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'standard'
+            'formatter': 'plain_console',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['access_file_handler', 'console'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'handlers': ['console', 'django_file'],
+            'level': LOG_LEVEL,
         },
         'django.db.backends': {
-            'handlers': ['db_handler'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'handlers': ['db_file'],
+            'level': LOG_LEVEL,
+        },
+        'django_structlog': {
+            'handlers': ['console', 'api_file'],
+            'level': LOG_LEVEL,
         },
         'api': {
-            'handlers': ['api_handler', 'api_console'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'handlers': ['console', 'api_file'],
+            'level': LOG_LEVEL,
         },
         'worker': {
-            'handlers': ['worker_handler', 'worker_console'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'handlers': ['console', 'worker_file'],
+            'level': LOG_LEVEL,
         },
-    }
+        'beat': {
+            'handlers': ['console', 'beat_file'],
+            'level': LOG_LEVEL,
+        },
+    },
 }
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt='iso'),
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    cache_logger_on_first_use=True,
+)

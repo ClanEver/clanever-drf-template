@@ -3,6 +3,7 @@ name = "{{ cookiecutter.project_name|trim() }}"
 version = "0.1.0"
 description = "{{ cookiecutter.description }}"
 dependencies = [
+    "arrow",
     "celery",
     "dj-rest-auth",
     "django",
@@ -14,6 +15,7 @@ dependencies = [
     "djangorestframework",
     "drf-spectacular[sidecar]",
     "django-structlog",
+    "filelock>=3.16.1",
     "flower",
     "gunicorn",
     "more-itertools",

@@ -82,6 +82,7 @@ ignore = [
     "RUF001",  # 字符串包含不明确的 unicode 字符
     "RUF002",  # 文档字符串包含不明确的 unicode 字符
     "RUF003",  # 注释包含不明确的 unicode 字符
+    "RUF012",  # dict 应使用 TypeDict
     "PLR2004", # 使用未命名的数字常量
     # "F401",  # 导入但未使用
 ]
