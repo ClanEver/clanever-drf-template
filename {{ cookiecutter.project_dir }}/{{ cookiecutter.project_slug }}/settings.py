@@ -239,6 +239,7 @@ SPECTACULAR_SETTINGS = {
     'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
     'REDOC_DIST': 'SIDECAR',
     # OTHER SETTINGS
+    'SCHEMA_PATH_PREFIX': r'/api/',  # swagger api 分组前缀
 }
 
 
