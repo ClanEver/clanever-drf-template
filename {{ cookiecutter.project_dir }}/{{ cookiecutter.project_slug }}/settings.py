@@ -6,10 +6,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/zh-hans/5.1/ref/settings/
 """
 
+import logging
 import os
 from pathlib import Path
 
-import structlog
+from {{ cookiecutter.project_slug }}.log_setting import gen_log_setting
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -17,7 +18,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ---------------- 自定义设置 ----------------
 class __BaseConfig:
-    DEBUG = False
+    DEBUG: bool = False
+    ALLOWED_HOSTS: list[str] = ['*']
     DATABASES: dict = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -26,10 +28,9 @@ class __BaseConfig:
     }
     LOG_PATH = BASE_DIR / 'logs'
 
-
 class DevConfig(__BaseConfig):
-    DEBUG: bool = True
-    DATABASES: dict = {
+    DEBUG = True
+    DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
@@ -42,7 +43,8 @@ class TestConfig(__BaseConfig):
 
 
 class ProdConfig(__BaseConfig):
-    DATABASES: dict = {
+    ALLOWED_HOSTS = ['TODO']
+    DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": "mydatabase",
@@ -80,7 +82,7 @@ SECRET_KEY = 'django-insecure-!!!SET DJANGO_SECRET_KEY!!!'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config.DEBUG
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config.ALLOWED_HOSTS
 
 
 # Application definition
@@ -94,6 +96,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # third-party
+    'django_structlog',
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
@@ -119,6 +122,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "allauth.account.middleware.AccountMiddleware",
+    'django_structlog.middlewares.RequestMiddleware',
+    'utils.log.Log5xxErrorsMiddleware',
 ]
 
 ROOT_URLCONF = '{{ cookiecutter.project_slug }}.urls'
@@ -151,7 +156,7 @@ DATABASES = config.DATABASES
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
+AUTH_PASSWORD_VALIDATORS = [] if DEBUG else [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
@@ -164,20 +169,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
-] if not DEBUG else []
+]
 
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = 'zh-hans'
-
 TIME_ZONE = 'Asia/Shanghai'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = False
 
 
@@ -185,6 +186,10 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+STATIC_ROOT = BASE_DIR / "static_root"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -212,6 +217,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': [
         'utils.drf_msgspec_json.MsgspecJSONParser',
     ],
+    # other
+    'EXCEPTION_HANDLER': 'utils.view.exception_handler',
     # drf-spectacular
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
@@ -264,123 +271,8 @@ CELERY_CACHE_BACKEND = 'default'
 # LOG
 LOG_PATH = config.LOG_PATH
 LOG_PATH.mkdir(parents=True, exist_ok=True)
-LOG_LEVEL = 'INFO'
-DJANGO_STRUCTLOG_CELERY_ENABLED = True
+LOG_LEVEL = logging.INFO
+LOGGING = gen_log_setting(LOG_PATH, LOG_LEVEL, DEBUG)
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'json_formatter': {
-            '()': structlog.stdlib.ProcessorFormatter,
-            'processor': structlog.processors.JSONRenderer(),
-            # 'processor': MsgspecJSONRenderer(),
-        },
-        'plain_console': {
-            '()': structlog.stdlib.ProcessorFormatter,
-            'processor': structlog.dev.ConsoleRenderer(),
-        },
-        'key_value': {
-            '()': structlog.stdlib.ProcessorFormatter,
-            'processor': structlog.processors.KeyValueRenderer(key_order=['timestamp', 'level', 'event', 'logger']),
-        },
-    },
-    'filters': {},
-    'handlers': {
-        # 'json_file': {
-        #     'level': LOG_LEVEL,
-        #     'formatter': 'json_formatter',
-        #     'class': 'utils.log.DayRotateHandlerWithThread',
-        #     'file_name': LOG_PATH / 'json.log',
-        #     'backup_count': 15,
-        #     'when': 'day',
-        # },
-        'django_file': {
-            'level': LOG_LEVEL,
-            'formatter': 'key_value',
-            'class': 'utils.log.DayRotateHandlerWithThread',
-            'file_name': LOG_PATH / 'django.log',
-            'backup_count': 15,
-            'when': 'day',
-        },
-        'api_file': {
-            'level': LOG_LEVEL,
-            'formatter': 'key_value',
-            'class': 'utils.log.DayRotateHandlerWithThread',
-            'file_name': LOG_PATH / 'api.log',
-            'backup_count': 15,
-            'when': 'day',
-        },
-        'db_file': {
-            'level': LOG_LEVEL,
-            'formatter': 'key_value',
-            'class': 'utils.log.DayRotateHandlerWithThread',
-            'file_name': LOG_PATH / 'db.log',
-            'backup_count': 15,
-            'when': 'day',
-        },
-        'beat_file': {
-            'level': LOG_LEVEL,
-            'formatter': 'key_value',
-            'class': 'utils.log.DayRotateHandlerWithThread',
-            'file_name': LOG_PATH / 'beat.log',
-            'backup_count': 15,
-            'when': 'day',
-        },
-        'worker_file': {
-            'level': LOG_LEVEL,
-            'formatter': 'key_value',
-            'class': 'utils.log.DayRotateHandlerWithThread',
-            'file_name': LOG_PATH / 'worker.log',
-            'backup_count': 15,
-            'when': 'day',
-        },
-        'console': {
-            'level': LOG_LEVEL,
-            'class': 'logging.StreamHandler',
-            'formatter': 'plain_console',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'django_file'],
-            'level': LOG_LEVEL,
-        },
-        'django.db.backends': {
-            'handlers': ['db_file'],
-            'level': LOG_LEVEL,
-        },
-        'django_structlog': {
-            'handlers': ['console', 'api_file'],
-            'level': LOG_LEVEL,
-        },
-        'api': {
-            'handlers': ['console', 'api_file'],
-            'level': LOG_LEVEL,
-        },
-        'worker': {
-            'handlers': ['console', 'worker_file'],
-            'level': LOG_LEVEL,
-        },
-        'beat': {
-            'handlers': ['console', 'beat_file'],
-            'level': LOG_LEVEL,
-        },
-    },
-}
-structlog.configure(
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        structlog.stdlib.filter_by_level,
-        structlog.processors.TimeStamper(fmt='iso'),
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ],
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    cache_logger_on_first_use=True,
-)
+DJANGO_STRUCTLOG_CELERY_ENABLED = True
+DJANGO_STRUCTLOG_STATUS_4XX_LOG_LEVEL = logging.WARNING
