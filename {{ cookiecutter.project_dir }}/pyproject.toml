@@ -12,9 +12,10 @@ dependencies = [
     "django-celery-results",
     "django-filter",
     "django-postgres-extra",
+    "django-simpleui",
+    "django-structlog",
     "djangorestframework",
     "drf-spectacular[sidecar]",
-    "django-structlog",
     "filelock",
     "flower",
     "gunicorn",
@@ -36,7 +37,7 @@ dev-dependencies = []
 [tool.rye.scripts]
 startapp = { cmd = "cookiecutter https://github.com/ClanEver/clanever-drf-app-template.git" }
 
-dev_run = { cmd = "python manage.py runserver", env = { DJANGO_CONFIG = "dev" } }
+dev = { cmd = "python manage.py runserver", env = { DJANGO_CONFIG = "dev" } }
 dev_makem = { cmd = "python manage.py makemigrations", env = { DJANGO_CONFIG = "dev" } }
 dev_migrate = { cmd = "python manage.py migrate", env = { DJANGO_CONFIG = "dev" } }
 dev_mnm = { chain = ["dev_makem", "dev_migrate"] }

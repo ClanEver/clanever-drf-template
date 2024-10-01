@@ -88,6 +88,7 @@ ALLOWED_HOSTS = config.ALLOWED_HOSTS
 # Application definition
 SITE_ID = 1
 INSTALLED_APPS = [
+    'simpleui',
     # django
     'django.contrib.admin',
     'django.contrib.auth',
@@ -189,7 +190,11 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+# 生产环境应交给 Nginx / Caddy 处理
 STATIC_ROOT = BASE_DIR / "static_root"
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / "media"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
