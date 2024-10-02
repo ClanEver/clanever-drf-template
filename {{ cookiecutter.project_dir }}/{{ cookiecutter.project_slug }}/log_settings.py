@@ -75,7 +75,7 @@ def gen_log_setting(log_path, log_level, debug):
             #     'when': 'day',
             # },
             'django_file': {
-                'level': max(log_level, logging.WARNING),
+                'level': log_level if debug else max(log_level, logging.WARNING),
                 'formatter': 'console_to_file',
                 'class': 'utils.log.ThreadedTimeRotatingHandler',
                 'file_name': log_path / 'django.log',
@@ -98,22 +98,22 @@ def gen_log_setting(log_path, log_level, debug):
                 'backup_count': 15,
                 'when': 'day',
             },
-            'beat_file': {
-                'level': log_level,
-                'formatter': 'console_to_file',
-                'class': 'utils.log.ThreadedTimeRotatingHandler',
-                'file_name': log_path / 'beat.log',
-                'backup_count': 15,
-                'when': 'day',
-            },
-            'worker_file': {
-                'level': log_level,
-                'formatter': 'console_to_file',
-                'class': 'utils.log.ThreadedTimeRotatingHandler',
-                'file_name': log_path / 'worker.log',
-                'backup_count': 15,
-                'when': 'day',
-            },
+            # 'beat_file': {
+            #     'level': log_level,
+            #     'formatter': 'console_to_file',
+            #     'class': 'utils.log.ThreadedTimeRotatingHandler',
+            #     'file_name': log_path / 'beat.log',
+            #     'backup_count': 15,
+            #     'when': 'day',
+            # },
+            # 'worker_file': {
+            #     'level': log_level,
+            #     'formatter': 'console_to_file',
+            #     'class': 'utils.log.ThreadedTimeRotatingHandler',
+            #     'file_name': log_path / 'worker.log',
+            #     'backup_count': 15,
+            #     'when': 'day',
+            # },
             'console': {
                 'level': log_level,
                 'class': 'logging.StreamHandler',
@@ -127,7 +127,7 @@ def gen_log_setting(log_path, log_level, debug):
         'loggers': {
             'django': {
                 'handlers': ['django_file'],
-                'level': max(log_level, logging.WARNING),
+                'level': log_level if debug else max(log_level, logging.WARNING),
             },
             'django.db.backends': {
                 'handlers': ['db_file'],
@@ -141,13 +141,13 @@ def gen_log_setting(log_path, log_level, debug):
                 'handlers': ['console', 'api_file'] if debug else ['api_file'],
                 'level': log_level,
             },
-            'worker': {
-                'handlers': ['console', 'worker_file'] if debug else ['worker_file'],
-                'level': log_level,
-            },
-            'beat': {
-                'handlers': ['console', 'beat_file'] if debug else ['beat_file'],
-                'level': log_level,
-            },
+            # 'worker': {
+            #     'handlers': ['console', 'worker_file'] if debug else ['worker_file'],
+            #     'level': log_level,
+            # },
+            # 'beat': {
+            #     'handlers': ['console', 'beat_file'] if debug else ['beat_file'],
+            #     'level': log_level,
+            # },
         },
     }
