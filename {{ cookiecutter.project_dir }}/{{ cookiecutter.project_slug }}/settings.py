@@ -124,7 +124,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "allauth.account.middleware.AccountMiddleware",
     'django_structlog.middlewares.RequestMiddleware',
-    'utils.log.Log5xxErrorsMiddleware',
+    'utils.midware.Wrap5xxErrorMiddleware',
+    'django_structlog.middlewares.RequestMiddleware',
+    'utils.midware.Log5xxErrorMiddleware',
+    'utils.midware.LogAPIExceptionMiddleware',
 ]
 
 ROOT_URLCONF = '{{ cookiecutter.project_slug }}.urls'
