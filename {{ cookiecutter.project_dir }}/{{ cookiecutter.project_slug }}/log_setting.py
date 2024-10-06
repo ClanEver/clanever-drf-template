@@ -36,7 +36,7 @@ def gen_log_setting(log_path, log_level, debug):
                 '()': structlog.stdlib.ProcessorFormatter,
                 'processor': structlog.dev.ConsoleRenderer(
                     sort_keys=False,
-                    exception_formatter=ClanRichTracebackFormatter(color_system='truecolor', highlight=True),  # type: ignore
+                    exception_formatter=ClanRichTracebackFormatter(color_system='truecolor', highlight=True),
                 ),
             },
             'django_console_to_file': {
@@ -44,14 +44,14 @@ def gen_log_setting(log_path, log_level, debug):
                 'format': '%(asctime)s [%(levelname)s] %(message)s',
                 'processor': structlog.dev.ConsoleRenderer(
                     colors=False,
-                    exception_formatter=format_exception_to_io,  # type: ignore
+                    exception_formatter=format_exception_to_io,
                 ),
             },
             'console_to_file': {
                 '()': structlog.stdlib.ProcessorFormatter,
                 'processor': structlog.dev.ConsoleRenderer(
                     colors=False,
-                    exception_formatter=format_exception_to_io,  # type: ignore
+                    exception_formatter=format_exception_to_io,
                 ),
             },
             'key_value': {

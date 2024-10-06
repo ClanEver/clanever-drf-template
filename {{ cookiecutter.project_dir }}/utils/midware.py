@@ -26,9 +26,9 @@ def convert_request(request: HttpRequest):
         'query_params': dict(request.GET),
         'post_data': sanitize_post_data(request.POST),
         # "headers": {k: v for k, v in request.headers.items()},
-        'user_name': request.user.username if request.user.is_authenticated else None,  # type: ignore
+        'user_name': request.user.username if request.user.is_authenticated else None,
         'content_type': request.content_type,
-        'session_id': request.session.session_key,  # type: ignore
+        'session_id': request.session.session_key,
     }
 
 
@@ -60,8 +60,8 @@ class Wrap5xxErrorMiddleware(MiddlewareMixin):
     def process_response(self, request, response):  # noqa
         if not settings.DEBUG and response.status_code >= 500 and not isinstance(response, Response):
             error_response = Response({'detail': 'Internal Server Error'}, status=response.status_code)
-            error_response.accepted_renderer = MsgspecJSONRenderer()  # type: ignore
-            error_response.accepted_media_type = 'application/json'  # type: ignore
-            error_response.renderer_context = {}  # type: ignore
+            error_response.accepted_renderer = MsgspecJSONRenderer()
+            error_response.accepted_media_type = 'application/json'
+            error_response.renderer_context = {}
             return error_response.render()
         return response

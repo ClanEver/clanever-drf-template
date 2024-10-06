@@ -110,6 +110,8 @@ INSTALLED_APPS = [
     'drf_spectacular_sidecar',
     'django_celery_results',
     'django_celery_beat',
+    # other
+    'debug',
     # your apps
     'my_app',
 ]
@@ -213,6 +215,7 @@ REST_FRAMEWORK = {
     # authentication
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -223,9 +226,12 @@ REST_FRAMEWORK = {
     # msgspec
     'DEFAULT_RENDERER_CLASSES': [
         'utils.drf_msgspec_json.MsgspecJSONRenderer',
+        *(['rest_framework.renderers.BrowsableAPIRenderer'] if DEBUG else []),
     ],
     'DEFAULT_PARSER_CLASSES': [
         'utils.drf_msgspec_json.MsgspecJSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
     ],
     # other
     'EXCEPTION_HANDLER': 'utils.view.exception_handler',

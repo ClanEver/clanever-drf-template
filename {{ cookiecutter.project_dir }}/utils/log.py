@@ -39,8 +39,8 @@ type ColorSystem = Literal['auto', 'standard', '256', 'truecolor', 'windows']
 
 class ClanTraceback(Traceback):
     @group()
-    def _render_stack(self, stack: rich.traceback.Stack) -> RenderResult:  # type: ignore
-        path_highlighter = rich.traceback.PathHighlighter()  # type: ignore
+    def _render_stack(self, stack: rich.traceback.Stack) -> RenderResult:
+        path_highlighter = rich.traceback.PathHighlighter()
         theme = self.theme
 
         def read_code(filename: str) -> str:
@@ -54,7 +54,7 @@ class ClanTraceback(Traceback):
             """
             return ''.join(linecache.getlines(filename))
 
-        def render_locals(_frame: rich.traceback.Frame) -> Iterable[ConsoleRenderable]:  # type: ignore
+        def render_locals(_frame: rich.traceback.Frame) -> Iterable[ConsoleRenderable]:
             if _frame.locals:
                 yield render_scope(
                     _frame.locals,
@@ -158,7 +158,7 @@ class ClanRichTracebackFormatter(structlog.dev.RichTracebackFormatter):
     highlight: bool = False
     max_frames: int = 3
 
-    def __call__(self, sio: TextIO, exc_info: EXC_INFO) -> None:  # type: ignore
+    def __call__(self, sio: TextIO, exc_info: EXC_INFO) -> None:
         if self.width == -1:
             self.width, _ = shutil.get_terminal_size((80, 0))
 
