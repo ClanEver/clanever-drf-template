@@ -31,6 +31,8 @@ class __BaseConfig:  # noqa: N801
     }
     LOG_PATH = BASE_DIR / 'logs'
     REDIS_URL: str = 'redis://:@127.0.0.1:6379/0'
+    FLOWER_URL: str = 'http://127.0.0.1:5555'
+
 
 class DevConfig(__BaseConfig):
     DEBUG = True
@@ -67,6 +69,7 @@ class ProdConfig(__BaseConfig):
         },
     }
     REDIS_URL = 'TODO'
+
 
 DJANGO_CONFIG = os.environ.get('DJANGO_CONFIG', 'dev')
 config = {
@@ -169,7 +172,7 @@ CACHES = {
             'pool_class': 'redis.BlockingConnectionPool',
             'max_connections': 10,
         },
-    }
+    },
 }
 
 # Password validation
@@ -302,6 +305,8 @@ CELERY_TASK_QUEUES = (
     Queue('celery', routing_key='celery'),
     Queue('priority', routing_key='priority'),
 )
+# for reverse proxy
+FLOWER_URL = config.FLOWER_URL
 
 
 # ---------------- Log Settings ----------------
@@ -318,5 +323,39 @@ DJANGO_STRUCTLOG_STATUS_4XX_LOG_LEVEL = logging.WARNING
 # https://django-import-export.readthedocs.io/en/latest/installation.html#settings
 IMPORT_FORMATS = [CSV]
 EXPORT_FORMATS = DEFAULT_FORMATS
-# IMPORT_EXPORT_IMPORT_PERMISSION_CODE = ''
-# IMPORT_EXPORT_EXPORT_PERMISSION_CODE = ''
+
+
+# ---------------- SimpleUI Settings ----------------
+SIMPLEUI_CONFIG = {
+    'system_keep': True,
+    'menus': [
+        {
+            'name': '其他',
+            'icon': 'fa fa-file',
+            # 二级菜单
+            # sub menu
+            'models': [
+                {
+                    'name': 'Swagger',
+                    'icon': 'fa-solid fa-cubes',
+                    'url': '/api/schema/swagger-ui/',
+                },
+                {
+                    'name': 'Redoc',
+                    'icon': 'fa-solid fa-book',
+                    'url': '/api/schema/redoc/',
+                },
+                {
+                    'name': 'Flower',
+                    'icon': 'fa-solid fa-seedling',
+                    'url': '/flower/',
+                },
+                {
+                    'name': '网站主页',
+                    'icon': 'fas fa-home',
+                    'url': '/',
+                },
+            ],
+        },
+    ],
+}
