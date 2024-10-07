@@ -42,9 +42,9 @@ dev_makem = { cmd = "python manage.py makemigrations", env = { DJANGO_CONFIG = "
 dev_migrate = { cmd = "python manage.py migrate", env = { DJANGO_CONFIG = "dev" } }
 dev_mnm = { chain = ["dev_makem", "dev_migrate"] }
 dev_cu = { cmd = "python manage.py createsuperuser", env = { DJANGO_CONFIG = "dev" } }
-dev_c_beat = { cmd = "celery -A proj beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler", env = { DJANGO_CONFIG = "dev" } }
-dev_c_worker = { cmd = "celery -A proj worker -l INFO -c 4", env = { DJANGO_CONFIG = "dev" } }
-dev_c_flower = { cmd = "celery -A {{ cookiecutter.project_slug }}.celery.app flower", env = { DJANGO_CONFIG = "dev" } }
+dev_c_beat = { cmd = "celery -A {{ cookiecutter.project_slug }} beat -l INFO", env = { DJANGO_CONFIG = "dev" } }
+dev_c_worker = { cmd = "celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q default -n default@%h", env = { DJANGO_CONFIG = "dev" } }
+dev_c_flower = { cmd = "celery -A {{ cookiecutter.project_slug }} flower", env = { DJANGO_CONFIG = "dev" } }
 
 rung = { cmd = "gunicorn -c gunicorn_config.py {{ cookiecutter.project_slug }}.wsgi", env = { DJANGO_CONFIG = "prod" } }
 start = { cmd = "bash scripts/start.sh", env = { DJANGO_CONFIG = "prod" } }

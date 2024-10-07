@@ -16,7 +16,7 @@ from {{ cookiecutter.project_slug }}.log_setting import gen_log_setting
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# ---------------- 自定义设置 ----------------
+# ---------------- Custom Settings ----------------
 class __BaseConfig:
     DEBUG: bool = False
     ALLOWED_HOSTS: list[str] = ['*']
@@ -73,7 +73,7 @@ config = {
 }.get(DJANGO_CONFIG)
 
 
-# ---------------- django设置 ----------------
+# ---------------- Django Settings ----------------
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/zh-hans/5.1/howto/deployment/checklist/
 
@@ -84,7 +84,6 @@ SECRET_KEY = 'django-insecure-!!!SET DJANGO_SECRET_KEY!!!'
 DEBUG = config.DEBUG
 
 ALLOWED_HOSTS = config.ALLOWED_HOSTS
-
 
 # Application definition
 SITE_ID = 1
@@ -155,7 +154,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = '{{ cookiecutter.project_slug }}.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/zh-hans/5.1/ref/settings/#databases
 
@@ -189,7 +187,6 @@ AUTH_PASSWORD_VALIDATORS = [] if DEBUG else [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/zh-hans/5.1/topics/i18n/
 
@@ -199,7 +196,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = False
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/zh-hans/5.1/howto/static-files/
 
@@ -208,10 +204,10 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 # 生产环境应交给 Nginx / Caddy 处理
+# Should be handled by Nginx / Caddy in production environment
 STATIC_ROOT = BASE_DIR / 'static_root'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/zh-hans/5.1/ref/settings/#default-auto-field
@@ -220,6 +216,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'auth_app.User'
 
 
+# ---------------- DRF Settings ----------------
 # REST_FRAMEWORK
 REST_FRAMEWORK = {
     # authentication
@@ -249,7 +246,6 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
-
 # drf-spectacular
 SPECTACULAR_SETTINGS = {
     'TITLE': '{{ cookiecutter.project_name }} API',
@@ -264,7 +260,8 @@ SPECTACULAR_SETTINGS = {
 }
 
 
-# email config -> https://docs.djangoproject.com/zh-hans/5.0/ref/settings/#email-backend
+# ---------------- Django Email Settings ----------------
+# email config -> https://docs.djangoproject.com/zh-hans/5.1/ref/settings/#email-backend
 EMAIL_BACKEND = ('django.core.mail.backends.console.EmailBackend'
                  if DEBUG
                  else 'django.core.mail.backends.smtp.EmailBackend')
@@ -280,7 +277,7 @@ EMAIL_SSL_CERTFILE = None
 EMAIL_SSL_KEYFILE = None
 
 
-# allauth
+# ---------------- Allauth Settings ----------------
 # regular account config doc -> https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_PASSWORD_MIN_LENGTH = 3 if DEBUG else 8
 # 是否发邮件: mandatory:发邮件且必须验证才能登录, optional:发邮件, none:不发
@@ -288,7 +285,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_CHANGE_EMAIL = True
 
 
-# Celery Config
+# ---------------- Celery Settings ----------------
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
@@ -299,7 +296,8 @@ CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 CELERY_BROKER_CONNECTION_RETRY = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
-# LOG
+
+# ---------------- Log Settings ----------------
 LOG_PATH = config.LOG_PATH
 LOG_PATH.mkdir(parents=True, exist_ok=True)
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
