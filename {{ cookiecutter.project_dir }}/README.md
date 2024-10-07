@@ -34,3 +34,13 @@
 ```shell
 python manage.py collectstatic
 ```
+
+## Celery
+
+```shell
+# 启动 worker
+celery -A {{ cookiecutter.project_slug|trim() }} worker -l INFO -c 2 -Q default -n default@%h
+# 启动 beat
+# beat 只需要 1 个实例
+celery -A {{ cookiecutter.project_slug|trim() }} beat -l INFO
+```

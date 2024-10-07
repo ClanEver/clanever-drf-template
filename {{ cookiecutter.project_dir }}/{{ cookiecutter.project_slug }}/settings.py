@@ -1,10 +1,10 @@
-"""
+'''
 For more information on this file, see
 https://docs.djangoproject.com/zh-hans/5.1/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/zh-hans/5.1/ref/settings/
-"""
+'''
 
 import logging
 import os
@@ -27,6 +27,7 @@ class __BaseConfig:
         }
     }
     LOG_PATH = BASE_DIR / 'logs'
+    REDIS_URL: str = 'redis://:@127.0.0.1:6379/0'
 
 class DevConfig(__BaseConfig):
     DEBUG = True
@@ -45,24 +46,24 @@ class TestConfig(__BaseConfig):
 class ProdConfig(__BaseConfig):
     ALLOWED_HOSTS = ['TODO']
     DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": "mydatabase",
-            "USER": "mydatabaseuser",
-            "PASSWORD": "mypassword",
-            "HOST": "127.0.0.1",
-            "PORT": "5432",
-            "OPTIONS": {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'mydatabase',
+            'USER': 'mydatabaseuser',
+            'PASSWORD': 'mypassword',
+            'HOST': '127.0.0.1',
+            'PORT': '5432',
+            'OPTIONS': {
                 # 连接池参数参考 https://www.psycopg.org/psycopg3/docs/api/pool.html#the-connectionpool-class
-                "pool": {
-                    "min_size": 2,
-                    "max_size": 10,
-                    "timeout": 10,
+                'pool': {
+                    'min_size': 2,
+                    'max_size': 10,
+                    'timeout': 10,
                 }
             },
         }
     }
-
+    REDIS_URL = 'TODO'
 
 DJANGO_CONFIG = os.environ.get('DJANGO_CONFIG', 'dev')
 config = {
@@ -124,7 +125,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "allauth.account.middleware.AccountMiddleware",
+    'allauth.account.middleware.AccountMiddleware',
     'django_structlog.middlewares.RequestMiddleware',
     'utils.midware.Wrap5xxErrorMiddleware',
     'django_structlog.middlewares.RequestMiddleware',
@@ -159,7 +160,16 @@ WSGI_APPLICATION = '{{ cookiecutter.project_slug }}.wsgi.application'
 # https://docs.djangoproject.com/zh-hans/5.1/ref/settings/#databases
 
 DATABASES = config.DATABASES
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': config.REDIS_URL,
+        'OPTIONS': {
+            'pool_class': 'redis.BlockingConnectionPool',
+            'max_connections': 10,
+        },
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/zh-hans/5.1/ref/settings/#auth-password-validators
@@ -195,19 +205,19 @@ USE_TZ = False
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / 'static',
 ]
 # 生产环境应交给 Nginx / Caddy 处理
-STATIC_ROOT = BASE_DIR / "static_root"
+STATIC_ROOT = BASE_DIR / 'static_root'
 MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Default primary key field type
 # https://docs.djangoproject.com/zh-hans/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-AUTH_USER_MODEL = "auth_app.User"
+AUTH_USER_MODEL = 'auth_app.User'
 
 
 # REST_FRAMEWORK
@@ -284,6 +294,10 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'default'
+CELERY_BROKER_URL = config.REDIS_URL
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
+CELERY_BROKER_CONNECTION_RETRY = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 # LOG
 LOG_PATH = config.LOG_PATH

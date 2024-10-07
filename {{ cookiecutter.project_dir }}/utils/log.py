@@ -192,8 +192,32 @@ class ClanRichTracebackFormatter(structlog.dev.RichTracebackFormatter):
 type RotateWhen = Literal['month', 'day', 'hour', 'minute', 'second']
 format_exception_to_io = ClanRichTracebackFormatter()
 
+def _init_time_format(when: RotateWhen):
+    match when.lower():
+        case 'month':
+            return 'YYYY-MM'
+        case 'day':
+            return 'YYYY-MM-DD'
+        case 'hour':
+            return 'YYYY-MM-DD-HH'
+        case 'minute':
+            return 'YYYY-MM-DD-HH-mm'
+        case 'second':
+            return 'YYYY-MM-DD-HH-mm-ss'
+        case _:
+            raise ValueError(f'Invalid when value: {when}')
 
-class ThreadedTimeRotatingHandler(logging.Handler):
+
+class SharedThreadedTimeRotatingHandler(logging.Handler):
+    # 共享线程对象
+    _shared_thread: threading.Thread | None = None
+    # 存储所有处理器实例的集合
+    _handlers: set['SharedThreadedTimeRotatingHandler'] = set()
+    # 停止事件，用于控制线程的停止
+    _stop_event = threading.Event()
+    # 线程等待时间
+    _wait_time = 0.1
+
     def __init__(
         self,
         file_name: Path | str,
@@ -202,7 +226,6 @@ class ThreadedTimeRotatingHandler(logging.Handler):
         encoding='utf-8',
         time_zone: arrow.arrow.TZ_EXPR | None = None,
         when: RotateWhen = 'day',
-        wait_time: float = 0.1,
     ):
         super().__init__()
         file_name = Path(file_name).absolute()
@@ -213,48 +236,73 @@ class ThreadedTimeRotatingHandler(logging.Handler):
         self.encoding = encoding
         self.time_zone = time_zone
         self.when = when
-        self._init_time_format()
-        self.wait_time = wait_time
-
+        self.time_format = _init_time_format(when)
         self.queue = queue.SimpleQueue()
-        self.exception_queue = queue.SimpleQueue()
-        self.stop_event = threading.Event()
-        self._new_thread()
+
+        # 将当前实例添加到处理器集合中
+        self.__class__._handlers.add(self)
 
     def __str__(self):
         return f'<{self.__class__.__name__} {self.file_stem}>'
 
-    def _init_time_format(self):
-        match self.when.lower():
-            case 'month':
-                self.time_format = 'YYYY-MM'
-            case 'day':
-                self.time_format = 'YYYY-MM-DD'
-            case 'hour':
-                self.time_format = 'YYYY-MM-DD-HH'
-            case 'minute':
-                self.time_format = 'YYYY-MM-DD-HH-mm'
-            case 'second':
-                self.time_format = 'YYYY-MM-DD-HH-mm-ss'
-            case _:
-                raise ValueError(f'Invalid when value: {self.when}')
+    def __hash__(self) -> int:
+        # 使用对象的id作为哈希值
+        return hash(id(self))
 
-    def _new_thread(self):
-        self.write_thread = threading.Thread(target=self._write_logs_wrapper, daemon=True)
-        self.write_thread.start()
+    @classmethod
+    def _new_thread(cls):
+        # 创建并启动新的共享线程
+        cls._stop_event.clear()
+        cls._shared_thread = threading.Thread(target=cls._write_logs_wrapper, daemon=True)
+        cls._shared_thread.start()
+
+    @classmethod
+    def _write_logs_wrapper(cls):
+        # 包装写日志方法，用于异常处理
+        cls._write_logs()
+
+    @classmethod
+    def _write_logs(cls):
+        # 主要的日志写入逻辑
+        while not cls._stop_event.is_set():
+            time.sleep(cls._wait_time)
+            for handler in cls._handlers:
+                try:
+                    handler.delete_old_logs()
+                    if handler.queue.empty():
+                        continue
+                    file_path, lock_file = handler.file_and_lock
+                    with (
+                        FileLock(lock_file, timeout=5),
+                        file_path.open(handler.mode, encoding=handler.encoding) as file,
+                        contextlib.suppress(queue.Empty, OSError),
+                    ):
+                        while True:
+                            file.write(handler.format(handler.queue.get_nowait()) + '\n')
+                except Exception:
+                    handler.log_exception(sys.exc_info())
+
+    @classmethod
+    def _check_thread(cls):
+        # 检查并确保共享线程正在运行
+        if not cls._shared_thread or not cls._shared_thread.is_alive():
+            cls._new_thread()
 
     @property
-    def _file_and_lock(self):
+    def file_and_lock(self):
+        # 获取当前日志文件和对应的锁文件路径
         file_name = f'{self.file_stem}.{arrow.now(tz=self.time_zone).format(self.time_format)}.log'
         return self.file_path / file_name, self.file_path / f'.{file_name}.lock'
 
     def emit(self, record: logging.LogRecord):
+        # 发射日志记录到队列
         if isinstance(record.msg, dict) and record.msg.get('exc_info') is True:
             record.msg['exc_info'] = sys.exc_info()
         self.queue.put(record)
         self._check_thread()
 
-    def _log_exception(self, exc_info):
+    def log_exception(self, exc_info):
+        # 记录异常信息到单独的错误日志文件
         error_log_file = self.file_path / f'_log.{arrow.now().format(self.time_format)}.log'
         lock_file = error_log_file.with_name(f'.{error_log_file.name}.lock')
         with (
@@ -262,19 +310,13 @@ class ThreadedTimeRotatingHandler(logging.Handler):
             error_log_file.open('a', encoding='utf-8') as file,
             contextlib.suppress(OSError),
         ):
-            file.write(f"{arrow.now(tz=self.time_zone).format('YYYY-MM-DD HH:mm:ss')} log handler 写入线程异常\n")
+            file.write(
+                f"{arrow.now(tz=self.time_zone).format('YYYY-MM-DD HH:mm:ss')} "
+                f"handler {self.file_and_lock[0]} 写入异常\n",
+            )
             format_exception_to_io(file, exc_info)
 
-    def _check_thread(self):
-        if not self.write_thread.is_alive():
-            with contextlib.suppress(queue.Empty):
-                while True:
-                    exception_info = self.exception_queue.get_nowait()
-                    self._log_exception(exception_info)
-            self.stop_event.clear()  # noqa
-            self._new_thread()
-
-    def _delete_old_logs(self):
+    def delete_old_logs(self):
         def unlink_paths(paths: list[Path]):
             for path in paths:
                 with contextlib.suppress(OSError):
@@ -299,36 +341,14 @@ class ThreadedTimeRotatingHandler(logging.Handler):
             # 删除最旧的文件，直到文件数量等于 backup_count
             unlink_paths(log_files[: -self.backup_count])
 
-    def _write_logs_wrapper(self):
-        try:
-            self._write_logs()
-        except Exception:  # noqa
-            self.exception_queue.put(sys.exc_info())
-
-    def _write_logs(self):
-        while not self.stop_event.is_set() or not self.queue.empty():
-            try:
-                time.sleep(self.wait_time)
-                self._delete_old_logs()
-                if self.queue.empty():
-                    continue
-                file_path, lock_file = self._file_and_lock
-                with (
-                    FileLock(lock_file, timeout=5),
-                    file_path.open(self.mode, encoding=self.encoding) as file,
-                    contextlib.suppress(queue.Empty, OSError),
-                ):
-                    while True:
-                        file.write(self.format(self.queue.get_nowait()) + '\n')
-            except Exception:
-                self._log_exception(sys.exc_info())
-
-    def flush(self):
-        pass
-
     def close(self):
-        self.stop_event.set()
-        self.write_thread.join()
+        # 关闭处理器，等待队列清空并从处理器集合中移除
+        while self in self.__class__._handlers and not self.queue.empty():
+            time.sleep(0.1)
+        if self in self.__class__._handlers:
+            self.__class__._handlers.remove(self)
+        if not self.__class__._handlers:
+            self.__class__._stop_event.set()
         super().close()
 
     def __del__(self):

@@ -69,15 +69,15 @@ def gen_log_setting(log_path, log_level, debug):
             # 'json_file': {
             #     'level': log_level,
             #     'formatter': 'json_formatter',
-            #     'class': 'utils.log.ClanThreadedTimeRotatingHandler',
+            #     'class': 'utils.log.ClanSharedThreadedTimeRotatingHandler',
             #     'file_name': log_path / 'json.log',
             #     'backup_count': 15,
             #     'when': 'day',
             # },
             'django_file': {
-                'level': log_level if debug else max(log_level, logging.WARNING),
+                'level': max(log_level, logging.WARNING),
                 'formatter': 'console_to_file',
-                'class': 'utils.log.ThreadedTimeRotatingHandler',
+                'class': 'utils.log.SharedThreadedTimeRotatingHandler',
                 'file_name': log_path / 'django.log',
                 'backup_count': 15,
                 'when': 'day',
@@ -85,7 +85,7 @@ def gen_log_setting(log_path, log_level, debug):
             'api_file': {
                 'level': log_level,
                 'formatter': 'console_to_file',
-                'class': 'utils.log.ThreadedTimeRotatingHandler',
+                'class': 'utils.log.SharedThreadedTimeRotatingHandler',
                 'file_name': log_path / 'api.log',
                 'backup_count': 15,
                 'when': 'day',
@@ -93,7 +93,7 @@ def gen_log_setting(log_path, log_level, debug):
             'db_file': {
                 'level': log_level,
                 'formatter': 'console_to_file',
-                'class': 'utils.log.ThreadedTimeRotatingHandler',
+                'class': 'utils.log.SharedThreadedTimeRotatingHandler',
                 'file_name': log_path / 'db.log',
                 'backup_count': 15,
                 'when': 'day',
@@ -101,7 +101,7 @@ def gen_log_setting(log_path, log_level, debug):
             # 'beat_file': {
             #     'level': log_level,
             #     'formatter': 'console_to_file',
-            #     'class': 'utils.log.ThreadedTimeRotatingHandler',
+            #     'class': 'utils.log.SharedThreadedTimeRotatingHandler',
             #     'file_name': log_path / 'beat.log',
             #     'backup_count': 15,
             #     'when': 'day',
@@ -109,7 +109,7 @@ def gen_log_setting(log_path, log_level, debug):
             # 'worker_file': {
             #     'level': log_level,
             #     'formatter': 'console_to_file',
-            #     'class': 'utils.log.ThreadedTimeRotatingHandler',
+            #     'class': 'utils.log.SharedThreadedTimeRotatingHandler',
             #     'file_name': log_path / 'worker.log',
             #     'backup_count': 15,
             #     'when': 'day',
@@ -127,11 +127,12 @@ def gen_log_setting(log_path, log_level, debug):
         'loggers': {
             'django': {
                 'handlers': ['django_file'],
-                'level': log_level if debug else max(log_level, logging.WARNING),
+                'level': max(log_level, logging.WARNING),
             },
             'django.db.backends': {
                 'handlers': ['db_file'],
                 'level': log_level,
+                'propagate': False,
             },
             'django_structlog': {
                 'handlers': ['console', 'api_file'] if debug else ['api_file'],
