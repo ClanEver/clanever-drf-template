@@ -10,6 +10,8 @@ import logging
 import os
 from pathlib import Path
 
+from kombu import Queue
+
 from {{ cookiecutter.project_slug }}.log_setting import gen_log_setting
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -295,6 +297,10 @@ CELERY_BROKER_URL = config.REDIS_URL
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 CELERY_BROKER_CONNECTION_RETRY = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TASK_QUEUES = (
+    Queue('celery', routing_key='celery'),
+    Queue('priority', routing_key='priority'),
+)
 
 
 # ---------------- Log Settings ----------------

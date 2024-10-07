@@ -22,6 +22,7 @@ dependencies = [
     "more-itertools",
     "msgspec",
     "psycopg[binary,pool]",
+    "redis",
     "requests",
     "rich",
     "tenacity",
