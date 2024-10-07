@@ -10,6 +10,7 @@ import logging
 import os
 from pathlib import Path
 
+from import_export.formats.base_formats import CSV, DEFAULT_FORMATS
 from kombu import Queue
 
 from {{ cookiecutter.project_slug }}.log_setting import gen_log_setting
@@ -19,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # ---------------- Custom Settings ----------------
-class __BaseConfig:
+class __BaseConfig:  # noqa: N801
     DEBUG: bool = False
     ALLOWED_HOSTS: list[str] = ['*']
     DATABASES: dict = {
@@ -61,9 +62,9 @@ class ProdConfig(__BaseConfig):
                     'min_size': 2,
                     'max_size': 10,
                     'timeout': 10,
-                }
+                },
             },
-        }
+        },
     }
     REDIS_URL = 'TODO'
 
@@ -311,3 +312,11 @@ LOGGING = gen_log_setting(LOG_PATH, LOG_LEVEL, DEBUG)
 
 DJANGO_STRUCTLOG_CELERY_ENABLED = True
 DJANGO_STRUCTLOG_STATUS_4XX_LOG_LEVEL = logging.WARNING
+
+
+# ---------------- Django Import Export Settings ----------------
+# https://django-import-export.readthedocs.io/en/latest/installation.html#settings
+IMPORT_FORMATS = [CSV]
+EXPORT_FORMATS = DEFAULT_FORMATS
+# IMPORT_EXPORT_IMPORT_PERMISSION_CODE = ''
+# IMPORT_EXPORT_EXPORT_PERMISSION_CODE = ''
