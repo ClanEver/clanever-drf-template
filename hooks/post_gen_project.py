@@ -1,11 +1,15 @@
 """
 Something copy from https://github.com/cookiecutter/cookiecutter-django/blob/master/hooks/post_gen_project.py
 """
-import string
+
+import os
 import random
+import string
 
 
-def generate_random_string(length, using_digits=False, using_ascii_letters=False, using_punctuation=False):
+def generate_random_string(
+    length, using_digits=False, using_ascii_letters=False, using_punctuation=False
+):
     """
     Example:
         opting out for 50 symbol-long, [a-z][A-Z][0-9] string
@@ -38,7 +42,7 @@ def set_flag(file_path, flag, value=None, formatted=None, *args, **kwargs):
             random_string = formatted.format(random_string)
         value = random_string
 
-    with open(file_path, "r+", encoding='utf-8') as f:
+    with open(file_path, "r+", encoding="utf-8") as f:
         file_contents = f.read().replace(flag, value)
         f.seek(0)
         f.write(file_contents)
@@ -60,8 +64,9 @@ def set_django_secret_key(file_path):
 
 
 def main():
-    production_django_envs_path = "{{cookiecutter.project_slug}}/settings.py"
+    production_django_envs_path = "{{ cookiecutter.project_slug }}/settings.py"
     set_django_secret_key(production_django_envs_path)
+    os.system("rye sync")
 
 
 if __name__ == "__main__":
