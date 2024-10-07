@@ -42,8 +42,13 @@ python manage.py collectstatic
 
 ```shell
 # 启动 worker
+rye run dev_cw
+# 或
 celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q default -n default@%h
+
 # 启动 beat
 # beat 只需要 1 个实例
+rye run dev_cb
+# 或
 celery -A {{ cookiecutter.project_slug }} beat -l INFO
 ```
