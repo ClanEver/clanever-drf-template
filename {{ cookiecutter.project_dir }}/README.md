@@ -43,8 +43,10 @@ python manage.py collectstatic
 ```shell
 # 启动 worker
 rye run dev_cw
+# 或指定队列
+rye run dev_cw -Q celery,priority
 # 或
-celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q default -n default@%h
+celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q celery -n default@%h
 
 # 启动 beat
 # beat 只需要 1 个实例

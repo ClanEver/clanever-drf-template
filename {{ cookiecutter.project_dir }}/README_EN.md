@@ -43,8 +43,10 @@ python manage.py collectstatic
 ```shell
 # Start worker
 rye run dev_cw
+# or set queue
+rye run dev_cw -Q celery,priority
 # or
-celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q default -n default@%h
+celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q celery -n default@%h
 
 # Start beat
 # Only 1 instance of beat is needed
