@@ -25,6 +25,8 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+from auth_app.views.flower import FlowerProxyView
+
 urlpatterns = [
     path("admin/", admin.site.urls, name="admin"),
     path("api/auth/", include("auth_app.urls"), name="auth"),
@@ -44,6 +46,7 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
     ),
+    FlowerProxyView.as_url(),
 ]
 
 if settings.DEBUG:

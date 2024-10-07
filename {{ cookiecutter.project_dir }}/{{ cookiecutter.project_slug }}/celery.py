@@ -9,9 +9,9 @@ from django_structlog.celery.steps import DjangoStructLogInitStep
 from utils.log import ClanRichTracebackFormatter, format_exception_to_io
 
 # Set the default Django settings module for the 'celery' program.
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_django_project.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{ cookiecutter.project_slug }}.settings")
 
-app = Celery("my_django_project")
+app = Celery("{{ cookiecutter.project_slug }}")
 app.steps["worker"].add(DjangoStructLogInitStep)
 
 # Using a string here means the worker doesn't have to serialize
@@ -36,7 +36,8 @@ def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # no
                     "processor": structlog.dev.ConsoleRenderer(
                         sort_keys=False,
                         exception_formatter=ClanRichTracebackFormatter(
-                            color_system="truecolor", highlight=True
+                            color_system="truecolor",
+                            highlight=True,
                         ),
                     ),
                 },

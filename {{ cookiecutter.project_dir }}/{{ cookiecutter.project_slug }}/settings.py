@@ -27,10 +27,10 @@ class __BaseConfig:  # noqa: N801
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
-        }
+        },
     }
     LOG_PATH = BASE_DIR / 'logs'
-    REDIS_URL: str = 'redis://:@127.0.0.1:6379/0'
+    REDIS_URL: str = 'redis://:@127.0.0.1:6379/0'  # TODO
     FLOWER_URL: str = 'http://127.0.0.1:5555'
 
 
@@ -40,7 +40,7 @@ class DevConfig(__BaseConfig):
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
-        }
+        },
     }
 
 
