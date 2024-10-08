@@ -42,15 +42,20 @@ python manage.py collectstatic
 
 ```shell
 # Start worker
-rye run dev_cw
+rye run dev_c_worker
 # or set queue
-rye run dev_cw -Q celery,priority
+rye run dev_c_worker -Q celery,priority
 # or
 celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q celery -n default@%h
 
 # Start beat
 # Only 1 instance of beat is needed
-rye run dev_cb
+rye run dev_c_beat
 # or
 celery -A {{ cookiecutter.project_slug }} beat -l INFO
+
+# Start flower
+rye run dev_c_flower
+# or
+celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --url_prefix=flower
 ```

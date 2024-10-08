@@ -42,15 +42,20 @@ python manage.py collectstatic
 
 ```shell
 # 启动 worker
-rye run dev_cw
+rye run dev_c_worker
 # 或指定队列
-rye run dev_cw -Q celery,priority
+rye run dev_c_worker -Q celery,priority
 # 或
 celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q celery -n default@%h
 
 # 启动 beat
 # beat 只需要 1 个实例
-rye run dev_cb
+rye run dev_c_beat
 # 或
 celery -A {{ cookiecutter.project_slug }} beat -l INFO
+
+# 启动 flower
+rye run dev_c_flower
+# or
+celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --url_prefix=flower
 ```
