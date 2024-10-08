@@ -76,7 +76,7 @@ select = [
     "ISC001", # 单行隐式连接字符串
     "TID252", # 优先选择绝对导入而不是相对导入
     "FLY002", # 考虑 f-string 而不是 str.join
-    "C90",    # mccabe 检测函数缩进复杂度
+    "C90",    # mccabe 检测函数复杂度
 ]
 ignore = [
     "RUF001",  # 字符串包含不明确的 unicode 字符

@@ -1,6 +1,7 @@
-from django.urls import re_path
 from django.conf import settings
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.http import HttpResponse
+from django.urls import re_path
 from revproxy.views import ProxyView
 
 
@@ -11,6 +12,11 @@ class FlowerProxyView(UserPassesTestMixin, ProxyView):
 
     def test_func(self):
         return self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            return HttpResponse('403 Permission Denied', status=403)
+        return HttpResponse('401 Unauthorized', status=401)
 
     @classmethod
     def as_url(cls):

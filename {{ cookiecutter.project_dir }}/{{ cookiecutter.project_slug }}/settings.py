@@ -263,6 +263,7 @@ SPECTACULAR_SETTINGS = {
     'REDOC_DIST': 'SIDECAR',
     # OTHER SETTINGS
     'SCHEMA_PATH_PREFIX': r'/api/',  # swagger api 分组前缀
+    'SERVE_PERMISSIONS': ['auth_app.permissions.IsSuperUser'],
 }
 
 
@@ -327,6 +328,7 @@ EXPORT_FORMATS = DEFAULT_FORMATS
 
 
 # ---------------- SimpleUI Settings ----------------
+# https://newpanjing.github.io/simpleui_docs/config.html#%E8%8F%9C%E5%8D%95
 SIMPLEUI_CONFIG = {
     'system_keep': True,
     'menus': [
