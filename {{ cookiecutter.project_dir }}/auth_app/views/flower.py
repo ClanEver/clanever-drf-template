@@ -1,3 +1,6 @@
+import contextlib
+
+import urllib3
 from django.conf import settings
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpResponse
@@ -21,3 +24,8 @@ class FlowerProxyView(UserPassesTestMixin, ProxyView):
     @classmethod
     def as_url(cls):
         return re_path(rf'^(?P<path>{cls.url_prefix}.*)$', cls.as_view())
+
+    def dispatch(self, request, *args, **kwargs):
+        with contextlib.suppress(urllib3.exceptions.HTTPError):
+            return super().dispatch(request, *args, **kwargs)
+        return HttpResponse('503 Service Temporarily Unavailable', status=503)
