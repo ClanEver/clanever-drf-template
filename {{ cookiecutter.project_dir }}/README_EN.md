@@ -46,7 +46,9 @@ rye run dev_c_worker
 # or set queue
 rye run dev_c_worker -Q celery,priority
 # or
-celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q celery -n default@%h
+celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q celery -P solo
+# -P solo is single process mode, not suitable for production
+# Production should not set this option (equivalent to using prefork) or use gevent (requires installation)
 
 # Start beat
 # Only 1 instance of beat is needed

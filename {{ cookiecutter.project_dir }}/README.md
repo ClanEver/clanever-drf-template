@@ -46,7 +46,9 @@ rye run dev_c_worker
 # 或指定队列
 rye run dev_c_worker -Q celery,priority
 # 或
-celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q celery -n default@%h
+celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q celery -P solo
+# 注意 -P solo 为单进程模式，不适用于生产环境
+# 生产应不设置（等同于使用 prefork）或 gevent（需要安装）
 
 # 启动 beat
 # beat 只需要 1 个实例
