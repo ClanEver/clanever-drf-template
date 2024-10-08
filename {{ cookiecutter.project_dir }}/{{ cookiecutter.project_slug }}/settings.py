@@ -116,6 +116,7 @@ INSTALLED_APPS = [
     'drf_spectacular_sidecar',
     'django_celery_results',
     'django_celery_beat',
+    'import_export',
     # other
     'debug',
     # your apps
