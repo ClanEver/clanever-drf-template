@@ -46,7 +46,7 @@ dev_migrate = { cmd = "python manage.py migrate", env = { DJANGO_CONFIG = "dev" 
 dev_mnm = { chain = ["dev_makem", "dev_migrate"] }
 dev_cu = { cmd = "python manage.py createsuperuser", env = { DJANGO_CONFIG = "dev" } }
 dev_c_beat = { cmd = "celery -A {{ cookiecutter.project_slug }} beat -l INFO", env = { DJANGO_CONFIG = "dev" } }
-dev_c_worker = { cmd = "celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2", env = { DJANGO_CONFIG = "dev" } }
+dev_c_worker = { cmd = "celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -P solo", env = { DJANGO_CONFIG = "dev" } }
 dev_c_flower = { cmd = "celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --url_prefix=flower", env = { DJANGO_CONFIG = "dev" } }
 
 rung = { cmd = "gunicorn -c gunicorn_config.py {{ cookiecutter.project_slug }}.wsgi", env = { DJANGO_CONFIG = "prod" } }
