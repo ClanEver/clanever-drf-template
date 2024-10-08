@@ -7,6 +7,7 @@ import shutil
 import sys
 import threading
 import time
+import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -17,7 +18,7 @@ import arrow
 import msgspec
 import rich
 import structlog
-from filelock import FileLock
+from filelock import AcquireReturnProxy, FileLock, BaseFileLock, Timeout
 from rich.columns import Columns
 from rich.console import Console, ConsoleRenderable, RenderResult, group
 from rich.scope import render_scope
@@ -43,14 +44,6 @@ class ClanTraceback(Traceback):
         theme = self.theme
 
         def read_code(filename: str) -> str:
-            """Read files, and cache results on filename.
-
-            Args:
-                filename (str): Filename to read
-
-            Returns:
-                str: Contents of file
-            """
             return "".join(linecache.getlines(filename))
 
         def render_locals(_frame: rich.traceback.Frame) -> Iterable[ConsoleRenderable]:
@@ -113,8 +106,6 @@ class ClanTraceback(Traceback):
                 try:
                     code = read_code(frame.filename)
                     if not code:
-                        # code may be an empty string if the file doesn't exist, OR
-                        # if the traceback filename is generated dynamically
                         continue
                     lexer_name = self._guess_lexer(frame.filename, code)
                     syntax = Syntax(
@@ -369,12 +360,7 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
     def close(self):
         # 关闭处理器，等待队列清空并从处理器集合中移除
         # Close the handler, wait for the queue to empty and remove from the handler set
-        count = 0
-        while (
-            self in self.__class__._handlers
-            and not self.queue.empty()
-            and (count := count + 1) >= 3
-        ):
+        while self in self.__class__._handlers and not self.queue.empty():
             time.sleep(0.1)
         if self in self.__class__._handlers:
             self.__class__._handlers.remove(self)
@@ -384,3 +370,59 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
 
     def __del__(self):
         self.close()
+
+
+# ---------------- FileLock Monkey Patch ----------------
+# 删除可能造成死锁的日志调用
+# Remove log calls that may cause deadlocks
+def __acquire(
+        self,
+        timeout: float | None = None,
+        poll_interval: float = 0.05,
+        *,
+        poll_intervall: float | None = None,
+        blocking: bool | None = None,
+    ) -> AcquireReturnProxy:
+    if timeout is None:
+        timeout = self._context.timeout
+
+    if blocking is None:
+        blocking = self._context.blocking
+
+    if poll_intervall is not None:
+        msg = "use poll_interval instead of poll_intervall"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        poll_interval = poll_intervall
+
+    # Increment the number right at the beginning. We can still undo it, if something fails.
+    self._context.lock_counter += 1
+
+    lock_filename = self.lock_file
+    start_time = time.perf_counter()
+    try:
+        while True:
+            if not self.is_locked:
+                self._acquire()
+            if self.is_locked:
+                break
+            if blocking is False:
+                raise Timeout(lock_filename)  # noqa: TRY301
+            if 0 <= timeout < time.perf_counter() - start_time:
+                raise Timeout(lock_filename)  # noqa: TRY301
+            time.sleep(poll_interval)
+    except BaseException:  # Something did go wrong, so decrement the counter.
+        self._context.lock_counter = max(0, self._context.lock_counter - 1)
+        raise
+    return AcquireReturnProxy(lock=self)
+
+
+def __release(self, force: bool = False) -> None:  # noqa: FBT001, FBT002
+    if self.is_locked:
+        self._context.lock_counter -= 1
+        if self._context.lock_counter == 0 or force:
+            self._release()
+            self._context.lock_counter = 0
+
+
+BaseFileLock.acquire = __acquire
+BaseFileLock.release = __release
