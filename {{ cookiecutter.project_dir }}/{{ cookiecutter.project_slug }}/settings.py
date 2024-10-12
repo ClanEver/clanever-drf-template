@@ -62,7 +62,7 @@ class ProdConfig(__BaseConfig):
                 # 连接池参数参考 https://www.psycopg.org/psycopg3/docs/api/pool.html#the-connectionpool-class
                 'pool': {
                     'min_size': 2,
-                    'max_size': 10,
+                    'max_size': 5,
                     'timeout': 10,
                 },
             },
@@ -120,7 +120,7 @@ INSTALLED_APPS = [
     # other
     'debug',
     # your apps
-    'my_app',
+    '{{ cookiecutter.app_name }}',
 ]
 
 MIDDLEWARE = [
@@ -304,6 +304,12 @@ CELERY_BROKER_URL = config.REDIS_URL
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 CELERY_BROKER_CONNECTION_RETRY = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+# 每个工作进程处理的最大任务数
+# Maximum number of tasks per worker process
+CELERY_MAX_TASKS_PER_CHILD = 500
+# 每个工作进程的最大内存使用量
+# Maximum memory usage per worker process
+CELERY_MAX_MEMORY_PER_CHILD = 150 * 1024  # 150MB
 CELERY_TASK_QUEUES = (
     Queue('celery', routing_key='celery'),
     Queue('priority', routing_key='priority'),
