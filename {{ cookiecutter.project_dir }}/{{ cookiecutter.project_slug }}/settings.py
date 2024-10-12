@@ -306,10 +306,10 @@ CELERY_BROKER_CONNECTION_RETRY = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 # 每个工作进程处理的最大任务数
 # Maximum number of tasks per worker process
-CELERY_MAX_TASKS_PER_CHILD = 500
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 500
 # 每个工作进程的最大内存使用量
 # Maximum memory usage per worker process
-CELERY_MAX_MEMORY_PER_CHILD = 150 * 1024  # 150MB
+CELERY_WORKER_MAX_MEMORY_PER_CHILD = 150 * 1024  # 150MB
 CELERY_TASK_QUEUES = (
     Queue('celery', routing_key='celery'),
     Queue('priority', routing_key='priority'),
