@@ -4,11 +4,18 @@ Something copy from https://github.com/cookiecutter/cookiecutter-django/blob/mas
 
 import os
 import random
+import re
 import string
+from pathlib import Path
+
+import tomlkit
 
 
 def generate_random_string(
-    length, using_digits=False, using_ascii_letters=False, using_punctuation=False
+    length,
+    using_digits=False,
+    using_ascii_letters=False,
+    using_punctuation=False,
 ):
     """
     Example:
@@ -23,26 +30,26 @@ def generate_random_string(
     if using_punctuation:
         all_punctuation = set(string.punctuation)
         # These symbols can cause issues in environment variables
-        unsuitable = {"'", '"', "\\", "$"}
+        unsuitable = {"'", '"', '\\', '$'}
         suitable = all_punctuation.difference(unsuitable)
-        symbols += "".join(suitable)
-    return "".join([random.choice(symbols) for _ in range(length)])
+        symbols += ''.join(suitable)
+    return ''.join([random.choice(symbols) for _ in range(length)])
 
 
-def set_flag(file_path, flag, value=None, formatted=None, *args, **kwargs):
+def set_flag(file_path: Path, flag, value=None, formatted=None, *args, **kwargs):
     if value is None:
         random_string = generate_random_string(*args, **kwargs)
         if random_string is None:
             print(
                 "We couldn't find a secure pseudo-random number generator on your "
-                "system. Please, make sure to manually {} later.".format(flag)
+                f'system. Please, make sure to manually {flag} later.'
             )
             random_string = flag
         if formatted is not None:
             random_string = formatted.format(random_string)
         value = random_string
 
-    with open(file_path, "r+", encoding="utf-8") as f:
+    with file_path.open('r+', encoding='utf-8') as f:
         file_contents = f.read().replace(flag, value)
         f.seek(0)
         f.write(file_contents)
@@ -51,23 +58,49 @@ def set_flag(file_path, flag, value=None, formatted=None, *args, **kwargs):
     return value
 
 
-def set_django_secret_key(file_path):
-    django_secret_key = set_flag(
+def set_django_secret_key(file_path: Path):
+    return set_flag(
         file_path,
-        "!!!SET DJANGO_SECRET_KEY!!!",
+        '!!!SET DJANGO_SECRET_KEY!!!',
         length=50,
         using_digits=True,
         using_ascii_letters=True,
         using_punctuation=True,
     )
-    return django_secret_key
+
+
+def set_dependencies_version_in_pyproject():
+    try:
+        output = os.popen('rye list').read()
+        packages = {}
+        for line in output.split('\n'):
+            match = re.match(r'(\S+)==(\S+)', line)
+            if match:
+                packages[match.group(1)] = match.group(2)
+        if not packages:
+            raise OSError('Cannot use rye')
+
+        pyproject_file = Path('pyproject.toml')
+        with pyproject_file.open('r') as f:
+            pyproject = tomlkit.load(f)
+
+        for idx, dep in enumerate(pyproject['project']['dependencies']):
+            dep_with_out_feat = dep.split('[', 1)[0]
+            if dep_with_out_feat in packages:
+                pyproject['project']['dependencies'][idx] = f'{dep}~={packages[dep_with_out_feat]}'
+
+        with pyproject_file.open('w') as f:
+            tomlkit.dump(pyproject, f)
+    except Exception as e:
+        print(f'set dependencies version in pyproject error: {e!r}')
 
 
 def main():
-    production_django_envs_path = "{{ cookiecutter.project_slug }}/settings.py"
+    production_django_envs_path = Path('{{ cookiecutter.project_slug }}/settings.py')
     set_django_secret_key(production_django_envs_path)
-    os.system("rye sync")
+    os.system('rye sync')
+    set_dependencies_version_in_pyproject()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

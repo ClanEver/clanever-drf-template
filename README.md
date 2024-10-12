@@ -33,7 +33,7 @@
 
 2. 使用 rye 安装 cookiecutter
     ```shell
-    rye install cookiecutter --extra-requirement jinja2-strcase
+    rye install cookiecutter --extra-requirement jinja2-strcase --extra-requirement tomlkit
     ```
 
 3. 使用此模板
