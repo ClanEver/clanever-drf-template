@@ -1,8 +1,8 @@
 from django.contrib import admin
 from import_export import resources
-from import_export.admin import ImportExportModelAdmin
 
 from {{ cookiecutter.app_name }}.models.{{ cookiecutter.model_name_snake }} import {{ cookiecutter.model_name }}
+from utils.admin import BaseModelAdmin
 
 
 class {{ cookiecutter.model_name }}Resource(resources.ModelResource):
@@ -12,6 +12,5 @@ class {{ cookiecutter.model_name }}Resource(resources.ModelResource):
 
 
 @admin.register({{ cookiecutter.model_name }})
-class {{ cookiecutter.model_name }}Admin(ImportExportModelAdmin):
-    list_display = ("__str__", )
+class {{ cookiecutter.model_name }}Admin(BaseModelAdmin):
     resource_classes = [{{ cookiecutter.model_name }}Resource]
