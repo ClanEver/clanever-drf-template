@@ -16,6 +16,7 @@ wheels/
 .git/
 logs/
 src/db.sqlite[3]
+db.sqlite[3]
 test_dir/
 test_dev/
 requirements-dev.lock
