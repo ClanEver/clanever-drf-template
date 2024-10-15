@@ -4,6 +4,8 @@ logs/
 *.sqlite[3]
 test_dir/
 test_dev/
+requirements.lock
+requirements-dev.lock
 
 # ide
 .idea/
