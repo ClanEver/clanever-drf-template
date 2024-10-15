@@ -17,3 +17,6 @@ wheels/
 logs/
 src/db.sqlite[3]
 test_dir/
+test_dev/
+requirements-dev.lock
+requirements.lock
