@@ -173,6 +173,7 @@ CACHES = {
             'pool_class': 'redis.BlockingConnectionPool',
             'max_connections': 10,
         },
+        'KEY_PREFIX': '{{ cookiecutter.project_name|trim() }}',
     },
 }
 
@@ -301,17 +302,19 @@ CELERY_RESULT_EXTENDED = True
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'default'
 CELERY_BROKER_URL = config.REDIS_URL
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 CELERY_BROKER_CONNECTION_RETRY = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_TRANSPORT_OPTIONS = {'global_keyprefix': '{{ cookiecutter.project_name|trim() }}:'}
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 # 每个工作进程处理的最大任务数
 # Maximum number of tasks per worker process
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 500
 # 每个工作进程的最大内存使用量
 # Maximum memory usage per worker process
 CELERY_WORKER_MAX_MEMORY_PER_CHILD = 150 * 1024  # 150MB
+CELERY_TASK_DEFAULT_QUEUE = 'default'
 CELERY_TASK_QUEUES = (
-    Queue('celery', routing_key='celery'),
+    Queue('default', routing_key='default'),
     Queue('priority', routing_key='priority'),
 )
 # for reverse proxy

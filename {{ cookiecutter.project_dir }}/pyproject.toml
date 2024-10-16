@@ -48,6 +48,19 @@ dev_cu = { cmd = "python manage.py createsuperuser", env = { DJANGO_CONFIG = "de
 dev_c_beat = { cmd = "celery -A {{ cookiecutter.project_slug }} beat -l INFO", env = { DJANGO_CONFIG = "dev" } }
 dev_c_worker = { cmd = "celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -P solo", env = { DJANGO_CONFIG = "dev" } }
 dev_c_flower = { cmd = "celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --url_prefix=flower", env = { DJANGO_CONFIG = "dev" } }
+dev_c = { cmd = """fish -c
+'function run_celery
+    rye run dev_c_beat &
+    rye run dev_c_worker &
+    rye run dev_c_flower &
+    function cleanup --on-signal INT
+        kill (jobs -p)
+        exit
+    end
+    wait
+end
+run_celery'
+""", env = { DJANGO_CONFIG = "dev" } }
 
 rung = { cmd = "gunicorn -c gunicorn_config.py {{ cookiecutter.project_slug }}.wsgi", env = { DJANGO_CONFIG = "prod" } }
 start = { cmd = "bash scripts/start.sh", env = { DJANGO_CONFIG = "prod" } }

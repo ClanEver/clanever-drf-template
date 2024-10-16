@@ -60,4 +60,7 @@ celery -A {{ cookiecutter.project_slug }} beat -l INFO
 rye run dev_c_flower
 # or
 celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --url_prefix=flower
+
+# 如果使用 fish shell, 可以同时启动 worker, beat, flower
+rye run dev_c
 ```

@@ -60,4 +60,7 @@ celery -A {{ cookiecutter.project_slug }} beat -l INFO
 rye run dev_c_flower
 # or
 celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --url_prefix=flower
+
+# start worker, beat and flower in one command if using fish shell
+rye run dev_c
 ```
