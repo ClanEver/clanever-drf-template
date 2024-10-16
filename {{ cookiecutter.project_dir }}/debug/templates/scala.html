@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>{{ title }} | Scalar</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+</head>
+<body>
+<script id="api-reference" data-url="{% url 'schema' %}"></script>
+
+<script>
+    // https://github.com/scalar/scalar/blob/main/documentation/configuration.md
+    let configuration = {
+        theme: 'kepler',
+        hideModels: true,
+        defaultHttpClient: {
+            targetKey: 'python',
+            clientKey: 'requests',
+        },
+    }
+    document.getElementById('api-reference').dataset.configuration = JSON.stringify(configuration)
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+</body>
+</html>

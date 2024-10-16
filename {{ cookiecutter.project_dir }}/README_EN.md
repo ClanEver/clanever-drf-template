@@ -28,7 +28,7 @@
 References
 
 - [Official doc](https://docs.djangoproject.com/en/5.1/ref/contrib/admin/)
-- [simpleui doc](https://github.com/newpanjing/simpleui)
+- [simpleui doc](https://newpanjing.github.io/simpleui_docs/config.html)
 
 For non-DEBUG mode, static files need to be collected and handled by Nginx / Caddy
 

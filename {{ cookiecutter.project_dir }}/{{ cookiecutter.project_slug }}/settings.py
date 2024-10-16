@@ -336,6 +336,12 @@ EXPORT_FORMATS = DEFAULT_FORMATS
 
 # ---------------- SimpleUI Settings ----------------
 # https://newpanjing.github.io/simpleui_docs/config.html#%E8%8F%9C%E5%8D%95
+SIMPLEUI_HOME_INFO = False
+SIMPLEUI_ICON = {
+    'Celery Results': 'fa-solid fa-chart-pie',
+    'Group results': 'fa-solid fa-layer-group',
+    'Task results': 'fa-solid fa-grip-lines',
+}
 SIMPLEUI_CONFIG = {
     'system_keep': True,
     'menus': [
@@ -354,6 +360,11 @@ SIMPLEUI_CONFIG = {
                     'name': 'Redoc',
                     'icon': 'fa-solid fa-book',
                     'url': '/api/schema/redoc/',
+                },
+                {
+                    'name': 'Scala',
+                    'icon': 'fa-solid fa-moon',
+                    'url': '/api/schema/scala/',
                 },
                 {
                     'name': 'Flower',

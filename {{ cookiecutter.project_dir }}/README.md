@@ -28,7 +28,7 @@
 参考
 
 - [官方文档](https://docs.djangoproject.com/zh-hans/5.1/ref/contrib/admin/)
-- [simpleui 文档](https://github.com/newpanjing/simpleui)
+- [simpleui 文档](https://newpanjing.github.io/simpleui_docs/config.html)
 
 若为非 DEBUG 模式，需要收集静态文件交给 Nginx / Caddy 处理
 
