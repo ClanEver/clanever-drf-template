@@ -5,7 +5,7 @@ from {{ cookiecutter.app_name }}.views.{{ cookiecutter.model_name_snake }} impor
 
 router = routers.DefaultRouter()
 
-router.register('{{ cookiecutter.model_name_snake }}', {{ cookiecutter.model_name }}ViewSet, basename="{{ cookiecutter.model_name_snake }}")
+router.register('{{ cookiecutter.model_name_snake }}', {{ cookiecutter.model_name }}ViewSet, basename='{{ cookiecutter.model_name_snake }}')
 
 
 urlpatterns = [
