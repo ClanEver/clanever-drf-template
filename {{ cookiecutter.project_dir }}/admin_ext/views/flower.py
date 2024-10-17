@@ -6,12 +6,12 @@ from django.http import HttpResponse
 from django.urls import re_path
 from revproxy.views import ProxyView
 
-from auth_app.permissions import user_is_superuser
+from admin_ext.permissions import user_is_superuser
 
 
 class FlowerProxyView(ProxyView):
     upstream = settings.FLOWER_URL
-    url_prefix = 'flower'
+    url_prefix = r'admin/flower'
     rewrite: tuple[tuple[str, str]] = ((rf'^/{url_prefix}$', rf'/{url_prefix}/'),)
 
     @classmethod

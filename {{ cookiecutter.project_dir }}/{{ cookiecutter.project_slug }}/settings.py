@@ -94,7 +94,7 @@ ALLOWED_HOSTS = config.ALLOWED_HOSTS
 # Application definition
 SITE_ID = 1
 INSTALLED_APPS = [
-    'auth_app',
+    'admin_ext',
     'simpleui',
     # django
     'django.contrib.admin',
@@ -117,8 +117,6 @@ INSTALLED_APPS = [
     'django_celery_results',
     'django_celery_beat',
     'import_export',
-    # other
-    'debug',
     # your apps
     '{{ cookiecutter.app_name }}',
 ]
@@ -221,7 +219,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/zh-hans/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-AUTH_USER_MODEL = 'auth_app.User'
+AUTH_USER_MODEL = 'admin_ext.User'
 
 
 # ---------------- DRF Settings ----------------
@@ -265,7 +263,7 @@ SPECTACULAR_SETTINGS = {
     'REDOC_DIST': 'SIDECAR',
     # OTHER SETTINGS
     'SCHEMA_PATH_PREFIX': r'/api/',  # swagger api 分组前缀
-    'SERVE_PERMISSIONS': ['auth_app.permissions.IsSuperUser'],
+    'SERVE_PERMISSIONS': ['admin_ext.permissions.IsSuperUser'],
 }
 
 
@@ -357,22 +355,22 @@ SIMPLEUI_CONFIG = {
                 {
                     'name': 'Swagger',
                     'icon': 'fa-solid fa-cubes',
-                    'url': '/api/schema/swagger-ui/',
+                    'url': '/admin/schema/swagger-ui/',
                 },
                 {
                     'name': 'Redoc',
                     'icon': 'fa-solid fa-book',
-                    'url': '/api/schema/redoc/',
+                    'url': '/admin/schema/redoc/',
                 },
                 {
                     'name': 'Scalar',
                     'icon': 'fa-solid fa-moon',
-                    'url': '/api/schema/scalar/',
+                    'url': '/admin/schema/scalar/',
                 },
                 {
                     'name': 'Flower',
                     'icon': 'fa-solid fa-seedling',
-                    'url': '/flower/',
+                    'url': '/admin/flower/',
                 },
                 {
                     'name': '网站主页',

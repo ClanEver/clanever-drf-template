@@ -17,26 +17,11 @@ Including another URLconf
 
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularRedocView,
-    SpectacularSwaggerView,
-)
-
-from auth_app.views.flower import FlowerProxyView
-from debug.views import scalar
 
 urlpatterns = [
-    path('admin/', admin.site.urls, name='admin'),
-    path('api/auth/', include('auth_app.urls'), name='auth'),
     path('api/{{ cookiecutter.app_name }}/', include('{{ cookiecutter.app_name }}.urls'), name='{{ cookiecutter.app_name }}'),
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    path('api/schema/scalar/', scalar, name='scalar'),
-    FlowerProxyView.as_url(),
+    path('', include('admin_ext.urls'), name='admin'),
 ]
 
 if settings.DEBUG:
