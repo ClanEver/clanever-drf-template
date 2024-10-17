@@ -16,41 +16,40 @@ from typing import Any, Literal, TextIO
 
 import arrow
 import msgspec
-import rich
 import structlog
-from filelock import AcquireReturnProxy, FileLock, BaseFileLock, Timeout
+from filelock import AcquireReturnProxy, FileLock, Timeout
 from rich.columns import Columns
 from rich.console import Console, ConsoleRenderable, RenderResult, group
 from rich.scope import render_scope
 from rich.syntax import Syntax
 from rich.text import Text
-from rich.traceback import Traceback
+from rich.traceback import Frame, PathHighlighter, Stack, Traceback
 
 
 class LogMsgspecJsonRenderer:
     def __call__(self, logger, name: str, event_dict: dict[str, Any]) -> str:  # noqa: ARG002
-        return msgspec.json.encode(event_dict).decode("utf-8")
+        return msgspec.json.encode(event_dict).decode('utf-8')
 
 
 # ---------------- Rich Exception Formatter ----------------
 type EXC_INFO = tuple[type[BaseException], BaseException, TracebackType]
-type ColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
+type ColorSystem = Literal['auto', 'standard', '256', 'truecolor', 'windows']
 
 
 class ClanTraceback(Traceback):
     @group()
-    def _render_stack(self, stack: rich.traceback.Stack) -> RenderResult:
-        path_highlighter = rich.traceback.PathHighlighter()
+    def _render_stack(self, stack: Stack) -> RenderResult:
+        path_highlighter = PathHighlighter()
         theme = self.theme
 
         def read_code(filename: str) -> str:
-            return "".join(linecache.getlines(filename))
+            return ''.join(linecache.getlines(filename))
 
-        def render_locals(_frame: rich.traceback.Frame) -> Iterable[ConsoleRenderable]:
+        def render_locals(_frame: Frame) -> Iterable[ConsoleRenderable]:
             if _frame.locals:
                 yield render_scope(
                     _frame.locals,
-                    title="locals",
+                    title='locals',
                     indent_guides=self.indent_guides,
                     max_length=self.locals_max_length,
                     max_string=self.locals_max_string,
@@ -69,9 +68,9 @@ class ClanTraceback(Traceback):
             if excluded:
                 assert exclude_frames is not None
                 yield Text(
-                    f"\n... {len(exclude_frames)} frames hidden ...",
-                    justify="center",
-                    style="traceback.error",
+                    f'\n... {len(exclude_frames)} frames hidden ...',
+                    justify='center',
+                    style='traceback.error',
                 )
                 excluded = False
 
@@ -81,25 +80,25 @@ class ClanTraceback(Traceback):
 
             if os.path.exists(frame.filename):  # noqa: PTH110
                 text = Text.assemble(
-                    path_highlighter(Text(frame.filename, style="pygments.string")),
-                    (":", "pygments.text"),
-                    (str(frame.lineno), "pygments.number"),
-                    " in ",
-                    (frame.name, "pygments.function"),
-                    style="pygments.text",
+                    path_highlighter(Text(frame.filename, style='pygments.string')),
+                    (':', 'pygments.text'),
+                    (str(frame.lineno), 'pygments.number'),
+                    ' in ',
+                    (frame.name, 'pygments.function'),
+                    style='pygments.text',
                 )
             else:
                 text = Text.assemble(
-                    "in ",
-                    (frame.name, "pygments.function"),
-                    (":", "pygments.text"),
-                    (str(frame.lineno), "pygments.number"),
-                    style="pygments.text",
+                    'in ',
+                    (frame.name, 'pygments.function'),
+                    (':', 'pygments.text'),
+                    (str(frame.lineno), 'pygments.number'),
+                    style='pygments.text',
                 )
-            if not frame.filename.startswith("<") and not first:
-                yield ""
+            if not frame.filename.startswith('<') and not first:
+                yield ''
             yield text
-            if frame.filename.startswith("<"):
+            if frame.filename.startswith('<'):
                 yield from render_locals(frame)
                 continue
             if not suppressed:
@@ -123,10 +122,10 @@ class ClanTraceback(Traceback):
                         indent_guides=self.indent_guides,
                         dedent=False,
                     )
-                    yield ""
+                    yield ''
                 except Exception as error:
                     yield Text.assemble(
-                        (f"\n{error}", "traceback.error"),
+                        (f'\n{error}', 'traceback.error'),
                     )
                 else:
                     yield (
@@ -144,7 +143,7 @@ class ClanTraceback(Traceback):
 
 @dataclass
 class ClanRichTracebackFormatter(structlog.dev.RichTracebackFormatter):
-    color_system: ColorSystem = "auto"
+    color_system: ColorSystem = 'auto'
     highlight: bool = False
     max_frames: int = 3
 
@@ -152,7 +151,7 @@ class ClanRichTracebackFormatter(structlog.dev.RichTracebackFormatter):
         if self.width == -1:
             self.width, _ = shutil.get_terminal_size((80, 0))
 
-        sio.write("\n")
+        sio.write('\n')
         Console(
             file=sio,
             color_system=self.color_system,
@@ -178,24 +177,24 @@ class ClanRichTracebackFormatter(structlog.dev.RichTracebackFormatter):
 
 
 # ---------------- Log Handler ----------------
-type RotateWhen = Literal["month", "day", "hour", "minute", "second"]
+type RotateWhen = Literal['month', 'day', 'hour', 'minute', 'second']
 format_exception_to_io = ClanRichTracebackFormatter()
 
 
 def _init_time_format(when: RotateWhen):
     match when.lower():
-        case "month":
-            return "YYYY-MM"
-        case "day":
-            return "YYYY-MM-DD"
-        case "hour":
-            return "YYYY-MM-DD-HH"
-        case "minute":
-            return "YYYY-MM-DD-HH-mm"
-        case "second":
-            return "YYYY-MM-DD-HH-mm-ss"
+        case 'month':
+            return 'YYYY-MM'
+        case 'day':
+            return 'YYYY-MM-DD'
+        case 'hour':
+            return 'YYYY-MM-DD-HH'
+        case 'minute':
+            return 'YYYY-MM-DD-HH-mm'
+        case 'second':
+            return 'YYYY-MM-DD-HH-mm-ss'
         case _:
-            raise ValueError(f"Invalid when value: {when}")
+            raise ValueError(f'Invalid when value: {when}')
 
 
 class SharedThreadedTimeRotatingHandler(logging.Handler):
@@ -204,7 +203,7 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
     _shared_thread: threading.Thread | None = None
     # 存储所有处理器实例的集合
     # Set to store all handler instances
-    _handlers: set["SharedThreadedTimeRotatingHandler"] = set()
+    _handlers: set['SharedThreadedTimeRotatingHandler'] = set()
     # 停止事件，用于控制线程的停止
     # Stop event, used to control thread stopping
     _stop_event = threading.Event()
@@ -216,10 +215,10 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
         self,
         file_name: Path | str,
         backup_count: int = 0,
-        mode: str = "a",
-        encoding="utf-8",
+        mode: str = 'a',
+        encoding='utf-8',
         time_zone: arrow.arrow.TZ_EXPR | None = None,
-        when: RotateWhen = "day",
+        when: RotateWhen = 'day',
     ):
         super().__init__()
         file_name = Path(file_name).absolute()
@@ -238,7 +237,7 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
         self.__class__._handlers.add(self)
 
     def __str__(self):
-        return f"<{self.__class__.__name__} {self.file_stem}>"
+        return f'<{self.__class__.__name__} {self.file_stem}>'
 
     def __repr__(self):
         return str(self)
@@ -254,7 +253,8 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
         # Create and start a new shared thread
         cls._stop_event.clear()
         cls._shared_thread = threading.Thread(
-            target=cls._write_logs_wrapper, daemon=True
+            target=cls._write_logs_wrapper,
+            daemon=True,
         )
         cls._shared_thread.start()
 
@@ -277,12 +277,12 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
                     continue
                 file_path, lock_file = handler.file_and_lock
                 with (
-                    FileLock(lock_file, timeout=cls._wait_time * 10),
+                    FileLockWithoutLog(lock_file, timeout=cls._wait_time * 10),
                     file_path.open(handler.mode, encoding=handler.encoding) as file,
                     contextlib.suppress(queue.Empty, OSError),
                 ):
                     while True:
-                        file.write(handler.format(handler.queue.get_nowait()) + "\n")
+                        file.write(handler.format(handler.queue.get_nowait()) + '\n')
             except Exception:
                 print(sys.exc_info())
                 handler.log_exception(sys.exc_info())
@@ -298,27 +298,25 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
     def file_and_lock(self):
         # 获取当前日志文件和对应的锁文件路径
         # Get the current log file and corresponding lock file path
-        file_name = f"{self.file_stem}.{arrow.now(tz=self.time_zone).format(self.time_format)}.log"
-        return self.file_path / file_name, self.file_path / f".{file_name}.lock"
+        file_name = f'{self.file_stem}.{arrow.now(tz=self.time_zone).format(self.time_format)}.log'
+        return self.file_path / file_name, self.file_path / f'.{file_name}.lock'
 
     def emit(self, record: logging.LogRecord):
         # 发射日志记录到队列
         # Emit log record to the queue
-        if isinstance(record.msg, dict) and record.msg.get("exc_info") is True:
-            record.msg["exc_info"] = sys.exc_info()
+        if isinstance(record.msg, dict) and record.msg.get('exc_info') is True:
+            record.msg['exc_info'] = sys.exc_info()
         self.queue.put(record)
         self._check_thread()
 
     def log_exception(self, exc_info):
         # 记录异常信息到单独的错误日志文件
         # Log exception information to a separate error log file
-        error_log_file = (
-            self.file_path / f"_log.{arrow.now().format(self.time_format)}.log"
-        )
-        lock_file = error_log_file.with_name(f".{error_log_file.name}.lock")
+        error_log_file = self.file_path / f'_log.{arrow.now().format(self.time_format)}.log'
+        lock_file = error_log_file.with_name(f'.{error_log_file.name}.lock')
         with (
-            FileLock(lock_file),
-            error_log_file.open("a", encoding="utf-8") as file,
+            FileLockWithoutLog(lock_file),
+            error_log_file.open('a', encoding='utf-8') as file,
             contextlib.suppress(OSError),
         ):
             file.write(
@@ -335,7 +333,7 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
 
         # 删除过时的锁文件
         # Delete outdated lock files
-        lock_files = list(self.file_path.glob(f".{self.file_stem}.*.log.lock"))
+        lock_files = list(self.file_path.glob(f'.{self.file_stem}.*.log.lock'))
         if len(lock_files) > 1:
             lock_files.sort(key=lambda x: x.name)
             unlink_paths(lock_files[:-1])
@@ -345,7 +343,7 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
 
         # 收集所有匹配的日志文件
         # Collect all matching log files
-        log_files = list(self.file_path.glob(f"{self.file_stem}.*.log"))
+        log_files = list(self.file_path.glob(f'{self.file_stem}.*.log'))
         # 如果文件数量不超过备份数量，无需删除
         # If the number of files does not exceed the backup count, no need to delete
         if len(log_files) > self.backup_count:
@@ -372,10 +370,11 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
         self.close()
 
 
-# ---------------- FileLock Monkey Patch ----------------
+# ---------------- FileLockWithoutLog ----------------
 # 删除可能造成死锁的日志调用
 # Remove log calls that may cause deadlocks
-def __acquire(
+class FileLockWithoutLog(FileLock):
+    def acquire(
         self,
         timeout: float | None = None,
         poll_interval: float = 0.05,
@@ -383,46 +382,41 @@ def __acquire(
         poll_intervall: float | None = None,
         blocking: bool | None = None,
     ) -> AcquireReturnProxy:
-    if timeout is None:
-        timeout = self._context.timeout
+        if timeout is None:
+            timeout = self._context.timeout
 
-    if blocking is None:
-        blocking = self._context.blocking
+        if blocking is None:
+            blocking = self._context.blocking
 
-    if poll_intervall is not None:
-        msg = "use poll_interval instead of poll_intervall"
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        poll_interval = poll_intervall
+        if poll_intervall is not None:
+            msg = 'use poll_interval instead of poll_intervall'
+            warnings.warn(msg, DeprecationWarning, stacklevel=2)
+            poll_interval = poll_intervall
 
-    # Increment the number right at the beginning. We can still undo it, if something fails.
-    self._context.lock_counter += 1
+        # Increment the number right at the beginning. We can still undo it, if something fails.
+        self._context.lock_counter += 1
 
-    lock_filename = self.lock_file
-    start_time = time.perf_counter()
-    try:
-        while True:
-            if not self.is_locked:
-                self._acquire()
-            if self.is_locked:
-                break
-            if blocking is False:
-                raise Timeout(lock_filename)  # noqa: TRY301
-            if 0 <= timeout < time.perf_counter() - start_time:
-                raise Timeout(lock_filename)  # noqa: TRY301
-            time.sleep(poll_interval)
-    except BaseException:  # Something did go wrong, so decrement the counter.
-        self._context.lock_counter = max(0, self._context.lock_counter - 1)
-        raise
-    return AcquireReturnProxy(lock=self)
+        lock_filename = self.lock_file
+        start_time = time.perf_counter()
+        try:
+            while True:
+                if not self.is_locked:
+                    self._acquire()
+                if self.is_locked:
+                    break
+                if blocking is False:
+                    raise Timeout(lock_filename)  # noqa: TRY301
+                if 0 <= timeout < time.perf_counter() - start_time:
+                    raise Timeout(lock_filename)  # noqa: TRY301
+                time.sleep(poll_interval)
+        except BaseException:  # Something did go wrong, so decrement the counter.
+            self._context.lock_counter = max(0, self._context.lock_counter - 1)
+            raise
+        return AcquireReturnProxy(lock=self)
 
-
-def __release(self, force: bool = False) -> None:  # noqa: FBT001, FBT002
-    if self.is_locked:
-        self._context.lock_counter -= 1
-        if self._context.lock_counter == 0 or force:
-            self._release()
-            self._context.lock_counter = 0
-
-
-BaseFileLock.acquire = __acquire
-BaseFileLock.release = __release
+    def release(self, force: bool = False) -> None:
+        if self.is_locked:
+            self._context.lock_counter -= 1
+            if self._context.lock_counter == 0 or force:
+                self._release()
+                self._context.lock_counter = 0
