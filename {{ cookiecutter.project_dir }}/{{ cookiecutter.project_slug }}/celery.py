@@ -6,6 +6,7 @@ from celery import Celery
 from celery.signals import setup_logging
 from django.conf import settings
 from django_structlog.celery.steps import DjangoStructLogInitStep
+
 from utils.log import ClanRichTracebackFormatter, format_exception_to_io
 
 # 为'celery'程序设置默认的Django设置模块。
@@ -75,11 +76,7 @@ def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # no
             },
             'loggers': {
                 'django_structlog.celery.receivers': {
-                    'handlers': (
-                        ['console', 'celery_file']
-                        if settings.DEBUG
-                        else ['celery_file']
-                    ),
+                    'handlers': (['console', 'celery_file'] if settings.DEBUG else ['celery_file']),
                     'level': loglevel,
                     'propagate': False,
                 },
