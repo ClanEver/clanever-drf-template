@@ -1,5 +1,6 @@
-# Exclude a variety of commonly ignored directories.
 # https://docs.astral.sh/ruff/configuration/
+
+# 排除各种常见的应忽略目录
 exclude = [
     ".bzr",
     ".direnv",
@@ -76,7 +77,7 @@ select = [
     "ISC001", # 单行隐式连接字符串
     "TID252", # 优先选择绝对导入而不是相对导入
     "FLY002", # 考虑 f-string 而不是 str.join
-    "C90",    # mccabe 检测函数复杂度
+    "C90",    # mccabe 函数复杂度
 ]
 ignore = [
     "RUF001",  # 字符串包含不明确的 unicode 字符
@@ -85,20 +86,24 @@ ignore = [
     "RUF012",  # dict 应使用 TypeDict
     "PLR0913", # 函数变量过多
     "PLR2004", # 使用未命名的数字常量
+    "ARG002",  # 未使用的方法参数
+    "PT027",   # 使用pytest.raises
     # "F401",  # 导入但未使用
 ]
 
-# Allow fix for all enabled rules (when `--fix`) is provided.
+# 允许修复所有启用的规则（当提供 `--fix` 时）
 fixable = ["ALL"]
 unfixable = []
 
-# Allow unused variables when underscore-prefixed.
+# 允许下划线前缀的未使用变量
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
+# 绝对导入检查范围
 # https://docs.astral.sh/ruff/settings/#lintflake8-tidy-imports
 [lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
+# mccabe 函数复杂度
 # https://docs.astral.sh/ruff/rules/complex-structure/
 [lint.mccabe]
 max-complexity = 20
