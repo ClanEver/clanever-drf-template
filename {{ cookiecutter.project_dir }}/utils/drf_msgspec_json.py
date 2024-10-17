@@ -56,6 +56,7 @@ def enc_hook(obj: Any) -> Any:  # noqa: PLR0911
         case _:
             raise JsonRenderError(f'Unknown type: {type(obj)}')
 
+
 class MsgspecJSONRenderer(JSONRenderer):
     encoder = msgspec.json.Encoder(enc_hook=enc_hook)
 
