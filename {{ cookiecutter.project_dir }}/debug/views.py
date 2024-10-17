@@ -5,6 +5,6 @@ from auth_app.permissions import user_is_superuser
 
 
 @user_is_superuser
-def scala(request):
+def scalar(request):
     context = {'title': spectacular_settings.TITLE}
-    return render(request, 'scala.html', context)
+    return render(request, 'scalar.html', context)

@@ -365,9 +365,9 @@ SIMPLEUI_CONFIG = {
                     'url': '/api/schema/redoc/',
                 },
                 {
-                    'name': 'Scala',
+                    'name': 'Scalar',
                     'icon': 'fa-solid fa-moon',
-                    'url': '/api/schema/scala/',
+                    'url': '/api/schema/scalar/',
                 },
                 {
                     'name': 'Flower',

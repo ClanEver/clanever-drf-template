@@ -26,7 +26,7 @@ from drf_spectacular.views import (
 )
 
 from auth_app.views.flower import FlowerProxyView
-from debug.views import scala
+from debug.views import scalar
 
 urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
@@ -35,7 +35,7 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    path('api/schema/scala/', scala, name='scala'),
+    path('api/schema/scalar/', scalar, name='scalar'),
     FlowerProxyView.as_url(),
 ]
 
