@@ -349,6 +349,7 @@ SIMPLEUI_CONFIG = {
         {
             'name': '其他',
             'icon': 'fa fa-file',
+            'permission': 'is_superuser',
             # 二级菜单
             # sub menu
             'models': [
