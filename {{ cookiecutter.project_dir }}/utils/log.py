@@ -204,6 +204,7 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
     # 存储所有处理器实例的集合
     # Set to store all handler instances
     _handlers: set['SharedThreadedTimeRotatingHandler'] = set()
+    _handlers_lock: threading.Lock = threading.Lock()
     # 停止事件，用于控制线程的停止
     # Stop event, used to control thread stopping
     _stop_event = threading.Event()
@@ -234,7 +235,8 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
 
         # 将当前实例添加到处理器集合中
         # Add the current instance to the handler set
-        self.__class__._handlers.add(self)
+        with self.__class__._handlers_lock:
+            self.__class__._handlers.add(self)
 
     def __str__(self):
         return f'<{self.__class__.__name__} {self.file_stem}>'
@@ -264,7 +266,8 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
         # Wrap the log writing method, reduce indentation
         while not cls._stop_event.is_set():
             time.sleep(cls._wait_time)
-            cls._write_logs()
+            with cls._handlers_lock:
+                cls._write_logs()
 
     @classmethod
     def _write_logs(cls):
@@ -361,7 +364,8 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
         while self in self.__class__._handlers and not self.queue.empty():
             time.sleep(0.1)
         if self in self.__class__._handlers:
-            self.__class__._handlers.remove(self)
+            with self.__class__._handlers_lock:
+                self.__class__._handlers.remove(self)
         if not self.__class__._handlers:
             self.__class__._stop_event.set()
         super().close()
