@@ -16,13 +16,13 @@
     - [structlog](https://github.com/hynek/structlog) [[文档](https://www.structlog.org/en/stable/)]
 - [django-rest-framework](https://github.com/encode/django-rest-framework/tree/master) [[文档](https://www.django-rest-framework.org/)]
     - [dj-rest-auth](https://github.com/iMerica/dj-rest-auth) [[文档](https://dj-rest-auth.readthedocs.io/en/latest/)]
+    - [django-rest-knox](https://github.com/jazzband/django-rest-knox) [[文档](https://jazzband.github.io/django-rest-knox/)]
 - [drf-spectacular](https://github.com/tfranzel/drf-spectacular) [[文档](https://drf-spectacular.readthedocs.io/en/latest/)]
-- [django-allauth](https://github.com/pennersr/django-allauth) [[文档](https://docs.allauth.org/en/latest/)]
 
 ## 工具库
 
 - [arrow](https://github.com/arrow-py/arrow) [[文档](https://arrow.readthedocs.io/en/latest/)]
-- [moremore-itertools](https://github.com/more-itertools/more-itertools) [[文档](https://more-itertools.readthedocs.io/en/latest/)]
+- [more-itertools](https://github.com/more-itertools/more-itertools) [[文档](https://more-itertools.readthedocs.io/en/latest/)]
 - [msgspec](https://github.com/jcrist/msgspec) [[文档](https://jcristharif.com/msgspec/)]
 - [requests](https://github.com/psf/requests) [[文档](https://requests.readthedocs.io/en/latest/)]
 - [tenacity](https://github.com/jd/tenacity) [[文档](https://tenacity.readthedocs.io/en/latest/)]

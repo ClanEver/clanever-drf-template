@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from utils.drf_msgspec_json import MsgspecJSONRenderer
 
 LOGGER = structlog.stdlib.get_logger(__name__)
-SENSITIVE_FIELDS = ['password', 'token']
+SENSITIVE_FIELDS = {'password', 'token', 'old_password', 'new_password1', 'new_password2'}
 
 
 def sanitize_post_data(post_data):

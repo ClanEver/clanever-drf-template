@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core import validators
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from knox.models import AbstractAuthToken
 
 custom_username_validator = validators.RegexValidator(
     r'^[a-zA-Z0-9]{5,100}$',
@@ -20,3 +21,12 @@ class User(AbstractUser):
             'unique': _('A user with that username already exists.'),
         },
     )
+
+
+class AuthToken(AbstractAuthToken):
+    class Meta:
+        verbose_name = _('登录 Token')
+        verbose_name_plural = verbose_name
+        indexes = [
+            models.Index(fields=['expiry']),
+        ]

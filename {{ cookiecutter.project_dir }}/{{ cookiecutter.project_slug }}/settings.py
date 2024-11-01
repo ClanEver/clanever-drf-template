@@ -8,6 +8,7 @@ https://docs.djangoproject.com/zh-hans/5.1/ref/settings/
 
 import logging
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from import_export.formats.base_formats import CSV, DEFAULT_FORMATS
@@ -105,9 +106,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # third-party
     'django_structlog',
-    'rest_framework',
-    'rest_framework.authtoken',
     'django_filters',
+    'rest_framework',
+    'knox',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -223,11 +224,11 @@ AUTH_USER_MODEL = 'admin_ext.User'
 
 
 # ---------------- DRF Settings ----------------
-# REST_FRAMEWORK
+# DRF
 REST_FRAMEWORK = {
     # authentication
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'knox.auth.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -250,6 +251,26 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'utils.view.exception_handler',
     # drf-spectacular
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# dj-rest-auth
+REST_AUTH = {
+    'TOKEN_SERIALIZER': 'admin_ext.serializers.knox.KnoxSerializer',
+    'TOKEN_MODEL': 'admin_ext.models.AuthToken',
+    'TOKEN_CREATOR': 'admin_ext.utils.create_knox_token',
+    'SESSION_LOGIN': False,
+}
+
+# django-rest-knox
+KNOX_TOKEN_MODEL = 'admin_ext.AuthToken'
+REST_KNOX = {
+    'SECURE_HASH_ALGORITHM': 'hashlib.sha512',
+    'AUTH_TOKEN_CHARACTER_LENGTH': 64,
+    'TOKEN_TTL': timedelta(hours=24),
+    'TOKEN_LIMIT_PER_USER': 5,
+    'AUTO_REFRESH': True,
+    'AUTO_REFRESH_MAX_TTL': None,
+    'MIN_REFRESH_INTERVAL': 60 * 10,  # seconds
 }
 
 # drf-spectacular

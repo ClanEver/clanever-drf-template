@@ -16,13 +16,13 @@ Powered by [cookiecutter](https://github.com/cookiecutter/cookiecutter) and [rye
     - [structlog](https://github.com/hynek/structlog) [[Doc](https://www.structlog.org/en/stable/)]
 - [django-rest-framework](https://github.com/encode/django-rest-framework/tree/master) [[Doc](https://www.django-rest-framework.org/)]
     - [dj-rest-auth](https://github.com/iMerica/dj-rest-auth) [[Doc](https://dj-rest-auth.readthedocs.io/en/latest/)]
+    - [django-rest-knox](https://github.com/jazzband/django-rest-knox) [[Doc](https://jazzband.github.io/django-rest-knox/)]
 - [drf-spectacular](https://github.com/tfranzel/drf-spectacular) [[Doc](https://drf-spectacular.readthedocs.io/en/latest/)]
-- [django-allauth](https://github.com/pennersr/django-allauth) [[Doc](https://docs.allauth.org/en/latest/)]
 
 ## Utility Libraries
 
 - [arrow](https://github.com/arrow-py/arrow) [[Doc](https://arrow.readthedocs.io/en/latest/)]
-- [moremore-itertools](https://github.com/more-itertools/more-itertools) [[Doc](https://more-itertools.readthedocs.io/en/latest/)]
+- [more-itertools](https://github.com/more-itertools/more-itertools) [[Doc](https://more-itertools.readthedocs.io/en/latest/)]
 - [msgspec](https://github.com/jcrist/msgspec) [[Doc](https://jcristharif.com/msgspec/)]
 - [requests](https://github.com/psf/requests) [[Doc](https://requests.readthedocs.io/en/latest/)]
 - [tenacity](https://github.com/jd/tenacity) [[Doc](https://tenacity.readthedocs.io/en/latest/)]
