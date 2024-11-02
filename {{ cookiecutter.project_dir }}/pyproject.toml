@@ -12,7 +12,6 @@ dependencies = [
     "django-celery-results",
     "django-filter",
     "django-import-export",
-    "django-postgres-extra",
     "django-rest-knox",
     "django-revproxy",
     "django-simpleui",
