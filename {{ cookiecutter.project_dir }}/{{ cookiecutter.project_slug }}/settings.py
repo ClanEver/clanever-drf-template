@@ -131,7 +131,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'django_structlog.middlewares.RequestMiddleware',
     'utils.midware.Wrap5xxErrorMiddleware',
     'django_structlog.middlewares.RequestMiddleware',
     'utils.midware.Log5xxErrorMiddleware',
