@@ -15,7 +15,7 @@ def sanitize_post_data(post_data):
     sanitized = dict(post_data)
     for field in SENSITIVE_FIELDS:
         if field in sanitized:
-            sanitized[field] = '******'
+            sanitized[field] = '*'
     return sanitized
 
 

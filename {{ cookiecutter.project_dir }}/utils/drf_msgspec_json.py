@@ -12,6 +12,8 @@ from rest_framework.parsers import BaseParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.settings import api_settings
 
+from utils.msgspec import msgspec_json
+
 __all__ = ['MsgspecJSONParser', 'MsgspecJSONRenderer']
 
 
@@ -24,7 +26,7 @@ class MsgspecJSONParser(BaseParser):
 
         try:
             data = stream.read().decode(encoding)
-            return msgspec.json.decode(data)
+            return msgspec_json.decode(data)
         except msgspec.DecodeError as exc:
             raise ParseError(f'JSON parse error - {exc}') from exc
 

@@ -1,11 +1,19 @@
-import msgspec
+import json
+from functools import lru_cache, partial
+
+from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields.utils import AttributeSetter
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.backends.postgresql import operations as django_pgsql_operations
+from rest_framework import serializers
+
+from utils.msgspec import MsgspecJsonWrapper, msgspec_json
 
 
 class BaseModel(models.Model):
-    create_time = models.DateTimeField(verbose_name=_('创建时间'), auto_now_add=True)
-    update_time = models.DateTimeField(verbose_name=_('更新时间'), auto_now=True)
+    create_time = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
+    update_time = models.DateTimeField(verbose_name='更新时间', auto_now=True)
 
     class Meta:
         abstract = True
@@ -23,64 +31,64 @@ class BaseModel(models.Model):
 
 class NoBulkQuerySet(models.QuerySet):
     def bulk_create(self, objs, *args, **kwargs):
-        raise models.ProtectedError('bulk_create is not allowed on this model', objs)
+        raise models.ProtectedError('不允许 bulk_create', objs)
 
     def bulk_update(self, objs, *args, **kwargs):
-        raise models.ProtectedError('bulk_update is not allowed on this model', objs)
+        raise models.ProtectedError('不允许 bulk_update', objs)
 
 
 class MsgspecJsonField(models.JSONField):
-    def __init__(self, *args, msgspec_type=None, **kwargs):
-        self.msgspec_type = msgspec_type
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('encoder', MsgspecJsonWrapper)
+        kwargs.setdefault('decoder', MsgspecJsonWrapper)
         super().__init__(*args, **kwargs)
-
-    def from_db_value(self, value, expression, connection):
-        if value is None:
-            return value
-        try:
-            return msgspec.json.decode(value, type=self.msgspec_type)
-        except msgspec.DecodeError as e:
-            raise ValidationError(f'Invalid JSON data: {value}') from e
-
-    def to_python(self, value):
-        if isinstance(value, str):
-            try:
-                return msgspec.json.decode(value, type=self.msgspec_type)
-            except msgspec.DecodeError as e:
-                raise ValidationError(f'Invalid JSON data: {value}') from e
-        return value
-
-    def get_prep_value(self, value):
-        if value is None:
-            return value
-        try:
-            return msgspec.json.encode(value).decode('utf-8')
-        except msgspec.EncodeError as e:
-            raise ValidationError(f'Cannot encode to JSON: {value}') from e
-
-    def validate(self, value, model_instance):
-        super().validate(value, model_instance)
-        try:
-            msgspec.json.encode(value)
-        except msgspec.EncodeError as e:
-            raise ValidationError(f'Invalid data for Msgspec encoding: {value}') from e
 
 
 class DictField(MsgspecJsonField):
-    def __init__(self, *args, msgspec_type=dict, default=dict, **kwargs):
-        super().__init__(*args, msgspec_type=msgspec_type, default=default, **kwargs)
+    def __init__(self, *args, default=dict, **kwargs):
+        super().__init__(*args, default=default, **kwargs)
 
     def validate(self, value, model_instance):
-        super().validate(value, model_instance)
         if not isinstance(value, dict):
             raise ValidationError(f'Value must be a dictionary: {value}')
-
-
-class ListField(MsgspecJsonField):
-    def __init__(self, *args, msgspec_type=list, default=list, **kwargs):
-        super().__init__(*args, msgspec_type=msgspec_type, default=default, **kwargs)
-
-    def validate(self, value, model_instance):
         super().validate(value, model_instance)
-        if not isinstance(value, list):
-            raise ValidationError(f'Value must be a list: {value}')
+
+
+class MsgspecArrayField(ArrayField):
+    def __init__(self, base_field, *args, **kwargs):
+        kwargs.setdefault('default', list)
+        super().__init__(base_field=base_field, *args, **kwargs)
+
+    def to_python(self, value):
+        if isinstance(value, str):
+            vals = msgspec_json.decode(value)
+            value = [self.base_field.to_python(val) for val in vals]
+        return value
+
+    def value_to_string(self, obj):
+        values = []
+        vals = self.value_from_object(obj)
+        base_field = self.base_field
+
+        for val in vals:
+            if val is None:
+                values.append(None)
+            else:
+                obj = AttributeSetter(base_field.attname, val)
+                values.append(base_field.value_to_string(obj))
+        return msgspec_json.encode(values).decode()
+
+
+serializers.ModelSerializer.serializer_field_mapping[MsgspecJsonField] = serializers.JSONField
+serializers.ModelSerializer.serializer_field_mapping[DictField] = serializers.DictField
+serializers.ModelSerializer.serializer_field_mapping[MsgspecArrayField] = serializers.ListField
+
+
+@lru_cache
+def get_json_dumps(encoder):
+    if encoder is None:
+        return msgspec_json.encode
+    return partial(json.dumps, cls=encoder)
+
+
+django_pgsql_operations.get_json_dumps = get_json_dumps

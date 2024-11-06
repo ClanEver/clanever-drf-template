@@ -15,7 +15,6 @@ from types import TracebackType
 from typing import Any, Literal, TextIO
 
 import arrow
-import msgspec
 import structlog
 from filelock import AcquireReturnProxy, FileLock, Timeout
 from rich.columns import Columns
@@ -25,10 +24,12 @@ from rich.syntax import Syntax
 from rich.text import Text
 from rich.traceback import Frame, PathHighlighter, Stack, Traceback
 
+from utils.msgspec import msgspec_json
+
 
 class LogMsgspecJsonRenderer:
     def __call__(self, logger, name: str, event_dict: dict[str, Any]) -> str:  # noqa: ARG002
-        return msgspec.json.encode(event_dict).decode('utf-8')
+        return msgspec_json.encode(event_dict).decode('utf-8')
 
 
 # ---------------- Rich Exception Formatter ----------------
