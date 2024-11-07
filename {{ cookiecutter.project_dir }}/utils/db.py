@@ -1,4 +1,5 @@
 import json
+from collections.abc import Callable, Sequence
 from functools import lru_cache, partial
 
 from django.contrib.postgres.fields import ArrayField
@@ -8,7 +9,7 @@ from django.db import models
 from django.db.backends.postgresql import operations as django_pgsql_operations
 from rest_framework import serializers
 
-from utils.msgspec import MsgspecJsonWrapper, msgspec_json
+from utils.msgspec import MsgspecDictJsoner, MsgspecJsoner, msgspec_jsoner, msgspec_list_jsoner
 
 
 class BaseModel(models.Model):
@@ -28,6 +29,29 @@ class BaseModel(models.Model):
             f'{" ".join(f"{k}={v}" for k, v in self.__dict__.items() if k not in self.__repr_exclude__)}>'
         )
 
+    @classmethod
+    def get_list_by_ids(cls, ids: Sequence[int]):
+        if not ids:
+            return ()
+        qs = cls.objects.filter(id=ids[0])
+        qs = qs.union(*(cls.objects.filter(id=id_) for id_ in ids[1:]), all=True)
+        if len(qs) != len(ids):
+            raise cls.DoesNotExist(f'id {",".join(str(x) for x in sorted(set(ids) - {x.id for x in qs}))} 不存在')
+        return tuple(qs)
+
+
+def CONDITIONAL_PROTECT(protect_on: Callable[[models.Model], bool]):  # noqa
+    """
+    条件保护，任何一个对象满足 protect_on 则保护
+    """
+
+    def on_delete(collector, field, sub_objs, using):
+        if any(protect_on(x) for x in sub_objs):
+            return models.PROTECT(collector, field, sub_objs, using)
+        return models.CASCADE(collector, field, sub_objs, using)
+
+    return on_delete
+
 
 class NoBulkQuerySet(models.QuerySet):
     def bulk_create(self, objs, *args, **kwargs):
@@ -39,29 +63,31 @@ class NoBulkQuerySet(models.QuerySet):
 
 class MsgspecJsonField(models.JSONField):
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('encoder', MsgspecJsonWrapper)
-        kwargs.setdefault('decoder', MsgspecJsonWrapper)
+        kwargs.setdefault('encoder', MsgspecJsoner)
+        kwargs.setdefault('decoder', MsgspecJsoner)
         super().__init__(*args, **kwargs)
 
 
 class DictField(MsgspecJsonField):
     def __init__(self, *args, default=dict, **kwargs):
+        kwargs.setdefault('encoder', MsgspecDictJsoner)
+        kwargs.setdefault('decoder', MsgspecDictJsoner)
         super().__init__(*args, default=default, **kwargs)
 
     def validate(self, value, model_instance):
         if not isinstance(value, dict):
-            raise ValidationError(f'Value must be a dictionary: {value}')
+            raise ValidationError(f'Value 必须为 dict: {value}')
         super().validate(value, model_instance)
 
 
 class MsgspecArrayField(ArrayField):
     def __init__(self, base_field, *args, **kwargs):
         kwargs.setdefault('default', list)
-        super().__init__(base_field=base_field, *args, **kwargs)
+        super().__init__(base_field, *args, **kwargs)
 
     def to_python(self, value):
         if isinstance(value, str):
-            vals = msgspec_json.decode(value)
+            vals = msgspec_list_jsoner.decode(value)
             value = [self.base_field.to_python(val) for val in vals]
         return value
 
@@ -76,7 +102,7 @@ class MsgspecArrayField(ArrayField):
             else:
                 obj = AttributeSetter(base_field.attname, val)
                 values.append(base_field.value_to_string(obj))
-        return msgspec_json.encode(values).decode()
+        return msgspec_list_jsoner.encode(values).decode()
 
 
 serializers.ModelSerializer.serializer_field_mapping[MsgspecJsonField] = serializers.JSONField
@@ -87,7 +113,7 @@ serializers.ModelSerializer.serializer_field_mapping[MsgspecArrayField] = serial
 @lru_cache
 def get_json_dumps(encoder):
     if encoder is None:
-        return msgspec_json.encode
+        return msgspec_jsoner.encode
     return partial(json.dumps, cls=encoder)
 
 

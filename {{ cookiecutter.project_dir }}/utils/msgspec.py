@@ -1,22 +1,35 @@
 import msgspec
 
 _encoder = msgspec.json.Encoder()
-_decoder = msgspec.json.Decoder()
 
 
-class _MsgspecJsonWrapper:
-    @staticmethod
-    def encode(obj, *args, **kwargs):
-        return _encoder.encode(obj)
+class _MsgspecJsoner:
+    def __init__(self, msgspec_type=None):
+        self.encoder = _encoder
+        self.decoder = msgspec.json.Decoder(msgspec_type)
 
-    @staticmethod
-    def decode(obj, *args, **kwargs):
-        return _decoder.decode(obj)
+    def encode(self, obj, *args, **kwargs):
+        return self.encoder.encode(obj)
+
+    def decode(self, obj, *args, **kwargs):
+        return self.decoder.decode(obj)
 
 
-msgspec_json = _MsgspecJsonWrapper()
+msgspec_jsoner = _MsgspecJsoner()
+msgspec_dict_jsoner = _MsgspecJsoner(dict)
+msgspec_list_jsoner = _MsgspecJsoner(list)
 
 
-class MsgspecJsonWrapper:
-    def __new__(cls, *args, **kwargs):
-        return msgspec_json
+class MsgspecJsoner:
+    def __new__(cls, *args, **kwargs):  # noqa
+        return msgspec_jsoner
+
+
+class MsgspecDictJsoner:
+    def __new__(cls, *args, **kwargs):  # noqa
+        return msgspec_dict_jsoner
+
+
+class MsgspecListJsoner:
+    def __new__(cls, *args, **kwargs):  # noqa
+        return msgspec_list_jsoner
