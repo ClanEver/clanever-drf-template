@@ -66,6 +66,7 @@ class ProdConfig(__BaseConfig):
                     'max_size': 5,
                     'timeout': 10,
                 },
+                'options': '-c idle_in_transaction_session_timeout=10s',
             },
         },
     }
