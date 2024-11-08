@@ -8,11 +8,12 @@ import msgspec
 from django.conf import settings
 from django.utils.functional import Promise
 from rest_framework.exceptions import ParseError
+from rest_framework.fields import DictField
 from rest_framework.parsers import BaseParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.settings import api_settings
 
-from utils.msgspec import msgspec_json
+from utils.msgspec import msgspec_jsoner
 
 __all__ = ['MsgspecJSONParser', 'MsgspecJSONRenderer']
 
@@ -26,7 +27,7 @@ class MsgspecJSONParser(BaseParser):
 
         try:
             data = stream.read().decode(encoding)
-            return msgspec_json.decode(data)
+            return msgspec_jsoner.decode(data)
         except msgspec.DecodeError as exc:
             raise ParseError(f'JSON parse error - {exc}') from exc
 
@@ -73,3 +74,16 @@ class MsgspecJSONRenderer(JSONRenderer):
         if indent:
             result_json = msgspec.json.format(result_json, indent=indent)
         return result_json
+
+
+# DictField monkey patch
+__DictField_init = DictField.__init__
+
+
+def __DictField_init_patched(self, **kwargs):  # noqa
+    kwargs.pop('encoder', None)
+    kwargs.pop('decoder', None)
+    return __DictField_init(self, **kwargs)
+
+
+DictField.__init__ = __DictField_init_patched
