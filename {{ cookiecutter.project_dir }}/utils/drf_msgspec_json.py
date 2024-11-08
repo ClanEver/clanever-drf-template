@@ -29,7 +29,7 @@ class MsgspecJSONParser(BaseParser):
             data = stream.read().decode(encoding)
             return msgspec_jsoner.decode(data)
         except msgspec.DecodeError as exc:
-            raise ParseError(f'JSON parse error - {exc}') from exc
+            raise ParseError(f'MsgspecJSONParser 解析失败 - {exc}') from exc
 
 
 class JsonRenderError(TypeError):
@@ -57,7 +57,7 @@ def enc_hook(obj: Any) -> Any:  # noqa: PLR0911
         case _ if hasattr(obj, '__iter__'):
             return list(obj)
         case _:
-            raise JsonRenderError(f'Unknown type: {type(obj)}')
+            raise JsonRenderError(f'utils.drf_msgspec_json.enc_hook: 未知类型: {type(obj)}')
 
 
 class MsgspecJSONRenderer(JSONRenderer):
