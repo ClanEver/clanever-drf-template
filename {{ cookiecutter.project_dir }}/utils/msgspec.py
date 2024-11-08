@@ -1,10 +1,12 @@
+from typing import Any
+
 import msgspec
 
 _encoder = msgspec.json.Encoder()
 
 
 class _MsgspecJsoner:
-    def __init__(self, msgspec_type=None):
+    def __init__(self, msgspec_type=Any):
         self.encoder = _encoder
         self.decoder = msgspec.json.Decoder(msgspec_type)
 
