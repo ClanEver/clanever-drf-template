@@ -24,12 +24,12 @@ from rich.syntax import Syntax
 from rich.text import Text
 from rich.traceback import Frame, PathHighlighter, Stack, Traceback
 
-from utils.msgspec import msgspec_json
+from utils.msgspec import msgspec_jsoner
 
 
 class LogMsgspecJsonRenderer:
     def __call__(self, logger, name: str, event_dict: dict[str, Any]) -> str:  # noqa: ARG002
-        return msgspec_json.encode(event_dict).decode('utf-8')
+        return msgspec_jsoner.encode(event_dict).decode('utf-8')
 
 
 # ---------------- Rich Exception Formatter ----------------
