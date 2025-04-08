@@ -147,9 +147,10 @@ class ClanRichTracebackFormatter(structlog.dev.RichTracebackFormatter):
     color_system: ColorSystem = 'auto'
     highlight: bool = False
     max_frames: int = 3
+    width: int | None = None
 
     def __call__(self, sio: TextIO, exc_info: EXC_INFO) -> None:
-        if self.width == -1:
+        if self.width is None:
             self.width, _ = shutil.get_terminal_size((80, 0))
 
         sio.write('\n')
