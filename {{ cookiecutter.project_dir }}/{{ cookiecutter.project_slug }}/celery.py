@@ -66,7 +66,7 @@ def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # no
                     'formatter': 'console_to_file',
                     'class': 'utils.log.SharedThreadedTimeRotatingHandler',
                     'file_name': settings.LOG_PATH / 'celery.log',
-                    'backup_count': 15,
+                    'backup_count': settings.LOG_BACKUP_DAYS,
                     'when': 'day',
                 },
                 'no_output': {

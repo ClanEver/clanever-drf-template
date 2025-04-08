@@ -84,10 +84,18 @@ def set_dependencies_version_in_pyproject():
         with pyproject_file.open('r') as f:
             pyproject = tomlkit.load(f)
 
-        for idx, dep in enumerate(pyproject['project']['dependencies']):
-            dep_with_out_feat = dep.split('[', 1)[0]
-            if dep_with_out_feat in packages:
-                pyproject['project']['dependencies'][idx] = f'{dep}~={packages[dep_with_out_feat]}'
+        for idx, raw_dep in enumerate(pyproject['project']['dependencies']):
+            if '>=' in raw_dep:
+                dep = raw_dep.split('>=')[0]
+            elif '~=' in raw_dep:
+                dep = raw_dep.split('~=')[0]
+            elif '==' in raw_dep:
+                dep = raw_dep.split('==')[0]
+            else:
+                dep = raw_dep
+            dep_without_feat = dep.split('[', 1)[0]
+            if dep_without_feat in packages:
+                pyproject['project']['dependencies'][idx] = f'{dep}~={packages[dep_without_feat]}'
 
         with pyproject_file.open('w') as f:
             tomlkit.dump(pyproject, f)

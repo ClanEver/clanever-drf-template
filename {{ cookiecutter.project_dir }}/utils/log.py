@@ -146,7 +146,7 @@ class ClanTraceback(Traceback):
 class ClanRichTracebackFormatter(structlog.dev.RichTracebackFormatter):
     color_system: ColorSystem = 'auto'
     highlight: bool = False
-    max_frames: int = 3
+    max_frames: int = 100
     width: int | None = None
 
     def __call__(self, sio: TextIO, exc_info: EXC_INFO) -> None:
@@ -201,17 +201,13 @@ def _init_time_format(when: RotateWhen):
 
 class SharedThreadedTimeRotatingHandler(logging.Handler):
     # 共享线程对象
-    # Shared thread object
     _shared_thread: threading.Thread | None = None
     # 存储所有处理器实例的集合
-    # Set to store all handler instances
     _handlers: set['SharedThreadedTimeRotatingHandler'] = set()
     _handlers_lock: threading.Lock = threading.Lock()
     # 停止事件，用于控制线程的停止
-    # Stop event, used to control thread stopping
     _stop_event = threading.Event()
     # 线程等待时间
-    # Thread wait time
     _wait_time = 0.1
 
     def __init__(
@@ -236,7 +232,6 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
         self.queue = queue.SimpleQueue()
 
         # 将当前实例添加到处理器集合中
-        # Add the current instance to the handler set
         with self.__class__._handlers_lock:
             self.__class__._handlers.add(self)
 
@@ -248,13 +243,11 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
 
     def __hash__(self) -> int:
         # 使用对象的id作为哈希值
-        # Use the object's id as the hash value
         return hash(id(self))
 
     @classmethod
     def _new_thread(cls):
         # 创建并启动新的共享线程
-        # Create and start a new shared thread
         cls._stop_event.clear()
         cls._shared_thread = threading.Thread(
             target=cls._write_logs_wrapper,
@@ -265,7 +258,6 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
     @classmethod
     def _write_logs_wrapper(cls):
         # 包装写日志方法，减少缩进
-        # Wrap the log writing method, reduce indentation
         while not cls._stop_event.is_set():
             time.sleep(cls._wait_time)
             with cls._handlers_lock:
@@ -274,7 +266,6 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
     @classmethod
     def _write_logs(cls):
         # 主要的日志写入逻辑
-        # Main log writing logic
         for handler in cls._handlers:
             try:
                 handler.delete_old_logs()
@@ -295,20 +286,17 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
     @classmethod
     def _check_thread(cls):
         # 检查并确保共享线程正在运行
-        # Check and ensure the shared thread is running
         if not cls._shared_thread or not cls._shared_thread.is_alive():
             cls._new_thread()
 
     @property
     def file_and_lock(self):
         # 获取当前日志文件和对应的锁文件路径
-        # Get the current log file and corresponding lock file path
         file_name = f'{self.file_stem}.{arrow.now(tz=self.time_zone).format(self.time_format)}.log'
         return self.file_path / file_name, self.file_path / f'.{file_name}.lock'
 
     def emit(self, record: logging.LogRecord):
         # 发射日志记录到队列
-        # Emit log record to the queue
         if isinstance(record.msg, dict) and record.msg.get('exc_info') is True:
             record.msg['exc_info'] = sys.exc_info()
         self.queue.put(record)
@@ -316,7 +304,6 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
 
     def log_exception(self, exc_info):
         # 记录异常信息到单独的错误日志文件
-        # Log exception information to a separate error log file
         error_log_file = self.file_path / f'_log.{arrow.now().format(self.time_format)}.log'
         lock_file = error_log_file.with_name(f'.{error_log_file.name}.lock')
         with (
@@ -325,8 +312,8 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
             contextlib.suppress(OSError),
         ):
             file.write(
-                f"{arrow.now(tz=self.time_zone).format('YYYY-MM-DD HH:mm:ss')} "
-                f"handler {self.file_and_lock[0]} 写入异常\n",
+                f'{arrow.now(tz=self.time_zone).format("YYYY-MM-DD HH:mm:ss")} '
+                f'handler {self.file_and_lock[0]} 写入异常\n',
             )
             format_exception_to_io(file, exc_info)
 
@@ -337,7 +324,6 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
                     path.unlink()
 
         # 删除过时的锁文件
-        # Delete outdated lock files
         lock_files = list(self.file_path.glob(f'.{self.file_stem}.*.log.lock'))
         if len(lock_files) > 1:
             lock_files.sort(key=lambda x: x.name)
@@ -347,22 +333,17 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
             return
 
         # 收集所有匹配的日志文件
-        # Collect all matching log files
         log_files = list(self.file_path.glob(f'{self.file_stem}.*.log'))
         # 如果文件数量不超过备份数量，无需删除
-        # If the number of files does not exceed the backup count, no need to delete
         if len(log_files) > self.backup_count:
             # 按文件名排序（这里假设文件名中的日期/时间部分可以直接用于排序）
-            # Sort by filename (assuming the date/time part in the filename can be used directly for sorting)
             log_files.sort(key=lambda x: x.name)
 
             # 删除最旧的文件，直到文件数量等于 backup_count
-            # Delete the oldest files until the number of files equals backup_count
             unlink_paths(log_files[: -self.backup_count])
 
     def close(self):
         # 关闭处理器，等待队列清空并从处理器集合中移除
-        # Close the handler, wait for the queue to empty and remove from the handler set
         while self in self.__class__._handlers and not self.queue.empty():
             time.sleep(0.1)
         if self in self.__class__._handlers:
@@ -378,7 +359,6 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
 
 # ---------------- FileLockWithoutLog ----------------
 # 删除可能造成死锁的日志调用
-# Remove log calls that may cause deadlocks
 class FileLockWithoutLog(FileLock):
     def acquire(
         self,

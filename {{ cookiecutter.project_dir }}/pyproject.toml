@@ -4,28 +4,27 @@ version = "0.1.0"
 description = "{{ cookiecutter.description }}"
 dependencies = [
     "arrow",
+    "authlib",
     "celery",
-    "dj-rest-auth",
     "django",
-    "django-allauth",
-    "django-celery-beat",
+    "django-celery-beat>=2.7.0",
     "django-celery-results",
     "django-filter",
     "django-import-export",
     "django-rest-knox",
     "django-revproxy",
-    "django-simpleui",
     "django-structlog",
+    "django-unfold",
     "djangorestframework",
     "drf-spectacular[sidecar]",
     "filelock",
     "flower",
+    "httpx",
     "gunicorn",
     "more-itertools",
     "msgspec",
     "psycopg[binary,pool]",
     "redis",
-    "requests",
     "rich",
     "tenacity",
 ]
@@ -35,7 +34,7 @@ requires-python = ">= 3.12"
 [tool.rye]
 managed = true
 virtual = true
-dev-dependencies = []
+dev-dependencies = ["django-stubs"]
 
 [tool.rye.scripts]
 startapp = { cmd = "cookiecutter https://github.com/ClanEver/clanever-drf-app-template.git" }
@@ -43,7 +42,8 @@ startapp = { cmd = "cookiecutter https://github.com/ClanEver/clanever-drf-app-te
 dev = { cmd = "python manage.py runserver", env = { DJANGO_CONFIG = "dev" } }
 dev_makem = { cmd = "python manage.py makemigrations", env = { DJANGO_CONFIG = "dev" } }
 dev_migrate = { cmd = "python manage.py migrate", env = { DJANGO_CONFIG = "dev" } }
-dev_mnm = { chain = ["dev_makem", "dev_migrate"] }
+dev_test_data = { cmd = "python scripts/create_test_data.py", env = { DJANGO_CONFIG = "dev", PYTHONPATH = "." } }
+dev_mnm = { chain = ["dev_makem", "dev_migrate", "dev_test_data"] }
 dev_cu = { cmd = "python manage.py createsuperuser", env = { DJANGO_CONFIG = "dev" } }
 dev_c_beat = { cmd = "celery -A {{ cookiecutter.project_slug }} beat -l INFO", env = { DJANGO_CONFIG = "dev" } }
 dev_c_worker = { cmd = "celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -P solo", env = { DJANGO_CONFIG = "dev" } }

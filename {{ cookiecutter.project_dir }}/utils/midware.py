@@ -1,17 +1,17 @@
 import structlog
-from django.conf import settings
 from django.http import HttpRequest
 from django.utils.deprecation import MiddlewareMixin
+from django.utils.translation import gettext_lazy as _
 from rest_framework.response import Response
 
 from utils.drf_msgspec_json import MsgspecJSONRenderer
 
 LOGGER = structlog.stdlib.get_logger(__name__)
-SENSITIVE_FIELDS = {'password', 'token', 'old_password', 'new_password1', 'new_password2'}
+SENSITIVE_FIELDS = {'password', 'token', 'old_password', 'new_password1', 'new_password2', 'Authorization'}
 
 
-def sanitize_post_data(post_data):
-    # 遮盖敏感信息
+def sanitize_data(post_data):
+    """遮盖敏感信息"""
     sanitized = dict(post_data)
     for field in SENSITIVE_FIELDS:
         if field in sanitized:
@@ -24,8 +24,8 @@ def convert_request(request: HttpRequest):
         # 'status_code': response.status_code,
         'request': f'{request.method} {request.path}',
         'query_params': dict(request.GET),
-        'post_data': sanitize_post_data(request.POST),
-        # "headers": {k: v for k, v in request.headers.items()},
+        'post_data': sanitize_data(request.POST),
+        "headers": sanitize_data(request.headers),
         'user_name': request.user.username if request.user.is_authenticated else None,
         'content_type': request.content_type,
         'session_id': request.session.session_key,
@@ -58,10 +58,14 @@ class LogAPIExceptionMiddleware(MiddlewareMixin):
 
 class Wrap5xxErrorMiddleware(MiddlewareMixin):
     def process_response(self, request, response):  # noqa
-        if not settings.DEBUG and response.status_code >= 500 and not isinstance(response, Response):
-            error_response = Response({'detail': 'Internal Server Error'}, status=response.status_code)
-            error_response.accepted_renderer = MsgspecJSONRenderer()
-            error_response.accepted_media_type = 'application/json'
-            error_response.renderer_context = {}
-            return error_response.render()
-        return response
+        from django.conf import settings
+
+        # 如果是 DEBUG 则不处理非 drf 5xx 异常
+        if settings.DEBUG or response.status_code <= 499 or isinstance(response, Response):
+            return response
+
+        error_response = Response({'detail': _()}, status=response.status_code)
+        error_response.accepted_renderer = MsgspecJSONRenderer()
+        error_response.accepted_media_type = 'application/json'
+        error_response.renderer_context = {}
+        return error_response.render()

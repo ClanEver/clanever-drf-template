@@ -21,7 +21,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path('api/{{ cookiecutter.app_name }}/', include('{{ cookiecutter.app_name }}.urls'), name='{{ cookiecutter.app_name }}'),
-    path('', include('admin_ext.urls'), name='admin'),
+    path('', include('admin_patch.urls'), name='admin'),
 ]
 
 if settings.DEBUG:

@@ -26,7 +26,7 @@ structlog.configure(
 )
 
 
-def gen_log_setting(log_path, log_level, debug):
+def gen_log_setting(log_path, log_level, debug, backup_days: int):
     return {
         'version': 1,
         'disable_existing_loggers': False,
@@ -75,8 +75,8 @@ def gen_log_setting(log_path, log_level, debug):
                     key_order=['timestamp', 'level', 'event', 'logger'],
                 ),
             },
-            'simple': {
-                'format': '%(asctime)s [%(levelname)s] %(message)s',
+            'db_simple': {
+                'format': '%(asctime)s [%(levelname)s]\n%(message)s',
             },
         },
         'filters': {},
@@ -91,15 +91,15 @@ def gen_log_setting(log_path, log_level, debug):
                 'formatter': 'django_console_to_file',
                 'class': 'utils.log.SharedThreadedTimeRotatingHandler',
                 'file_name': log_path / 'django.log',
-                'backup_count': 15,
+                'backup_count': backup_days,
                 'when': 'day',
             },
             'db_file': {
                 'level': log_level,
-                'formatter': 'console_to_file',
+                'formatter': 'db_simple',
                 'class': 'utils.log.SharedThreadedTimeRotatingHandler',
                 'file_name': log_path / 'db.log',
-                'backup_count': 15,
+                'backup_count': backup_days,
                 'when': 'day',
             },
             'api_file': {
@@ -107,7 +107,7 @@ def gen_log_setting(log_path, log_level, debug):
                 'formatter': 'console_to_file',
                 'class': 'utils.log.SharedThreadedTimeRotatingHandler',
                 'file_name': log_path / 'api.log',
-                'backup_count': 15,
+                'backup_count': backup_days,
                 'when': 'day',
             },
             'no_output': {

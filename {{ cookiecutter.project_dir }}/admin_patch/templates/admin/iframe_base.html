@@ -1,0 +1,31 @@
+{% raw %}{% extends "unfold/layouts/base.html" %}
+
+{% load admin_urls i18n unfold %}
+
+{% block extrastyle %}
+    <style>
+        #main > div:first-child {
+            margin-bottom: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block base %}
+    <div id="page" class="flex min-h-screen">
+        {% if not is_popup and is_nav_sidebar_enabled %}
+            {% block nav-sidebar %} {% include "admin/nav_sidebar.html" %} {% endblock %}
+        {% endif %}
+
+        <div
+                id="main"
+                class="grow min-w-0 flex flex-col"
+        >
+            {% block content_before %}
+                {% include "unfold/helpers/header.html" %}
+            {% endblock %}
+
+            <iframe src="{{ iframe_uri }}" class="w-full h-full"></iframe>
+        </div>
+    </div>
+{% endblock %}
+{% endraw %}

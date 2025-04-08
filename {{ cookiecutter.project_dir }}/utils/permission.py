@@ -5,11 +5,15 @@ from rest_framework import permissions
 
 
 class IsSuperUser(permissions.BasePermission):
+    """drf-spectacular 的页面用"""
+
     def has_permission(self, request, view):
         return request.user.is_superuser
 
 
 def user_is_superuser(view_func):
+    """scalar 页面用"""
+
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
