@@ -7,29 +7,22 @@ from celery.signals import setup_logging
 from django.conf import settings
 from django_structlog.celery.steps import DjangoStructLogInitStep
 
-from utils.log import ClanRichTracebackFormatter, format_exception_to_io
-
-# 为'celery'程序设置默认的Django设置模块。
-# Set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{{ cookiecutter.project_slug }}.settings')
-
-app = Celery('test3')
+app = Celery('{{ cookiecutter.project_name }}')
 app.steps['worker'].add(DjangoStructLogInitStep)
 
-# 在这里使用字符串意味着 worker 不需要序列化配置对象到子进程。
-# namespace='CELERY' 意味着所有与 celery 相关的配置键应该有一个 'CELERY_' 前缀。
-# Using a string here means the worker doesn't have to serialize the configuration object to child processes.
-# namespace='CELERY' means all celery-related configuration keys should have a `CELERY_` prefix.
+# 在这里使用字符串意味着 worker 不需要序列化配置对象到子进程
+# namespace='CELERY' 意味着所有与 celery 相关的配置键应该有一个 'CELERY_' 前缀
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# 从所有已注册的 Django 应用中加载任务模块。
-# Load task modules from all registered Django apps.
+# 从所有已注册的 Django 应用中加载任务模块
 app.autodiscover_tasks()
 
 
 @setup_logging.connect
 def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # noqa: A002, ARG001
     from {{ cookiecutter.project_slug }} import log_setting
+    from utils.log import ClanRichTracebackFormatter, format_exception_to_io
 
     del log_setting
     logging.config.dictConfig(
