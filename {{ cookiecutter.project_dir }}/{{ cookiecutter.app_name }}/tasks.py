@@ -1,6 +1,6 @@
-from {{ cookiecutter.project_slug }}.celery import app
+# from celery import shared_task
 
 
-# @app.task
+# @shared_task
 # def add(x, y):
 #     return x + y
