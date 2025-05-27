@@ -9,7 +9,7 @@
 - 接口仅允许 OIDC 登录，客户端依赖 [Authlib]()
 - Admin 使用 [Unfold Admin](https://github.com/unfoldadmin/django-unfold)
 - 日志使用 [django-structlog](https://github.com/jrobichaud/django-structlog)
-- 日志写入类使用 [utils/log.py](https://github.com/ClanEver/clanever-drf-template/blob/main/%7B%7B%20cookiecutter.project_dir%20%7D%7D/utils/log.py).SharedThreadedTimeRotatingHandler (因为 Python 自带的并非线程安全)
+- 日志写入类使用 [utils/log.py](https://github.com/ClanEver/clanever-drf-template/blob/main/%7B%7B%20cookiecutter.project_dir%20%7D%7D/utils/log.py).SharedThreadedTimeRotatingHandler (因为 Python 自带的并非多进程安全)
 - 接口文档 (Swagger, Redoc, Scalar) 和 Celery Flower 以 iframe 方式集成到 Admin
 
 ![Admin](img/admin.jpg)
