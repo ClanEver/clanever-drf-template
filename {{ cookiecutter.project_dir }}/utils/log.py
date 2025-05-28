@@ -1,186 +1,19 @@
 import contextlib
-import linecache
 import logging
-import os
 import queue
-import shutil
 import sys
 import threading
 import time
 import warnings
-from collections.abc import Iterable
-from dataclasses import dataclass
 from pathlib import Path
-from types import TracebackType
-from typing import Any, Literal, TextIO
+from typing import Literal
 
 import arrow
 import structlog
 from filelock import AcquireReturnProxy, FileLock, Timeout
-from rich.columns import Columns
-from rich.console import Console, ConsoleRenderable, RenderResult, group
-from rich.scope import render_scope
-from rich.syntax import Syntax
-from rich.text import Text
-from rich.traceback import Frame, PathHighlighter, Stack, Traceback
-
-from utils.msgspec import msgspec_jsoner
-
-
-class LogMsgspecJsonRenderer:
-    def __call__(self, logger, name: str, event_dict: dict[str, Any]) -> str:  # noqa: ARG002
-        return msgspec_jsoner.encode(event_dict).decode('utf-8')
-
-
-# ---------------- Rich Exception Formatter ----------------
-type EXC_INFO = tuple[type[BaseException], BaseException, TracebackType]
-type ColorSystem = Literal['auto', 'standard', '256', 'truecolor', 'windows']
-
-
-class ClanTraceback(Traceback):
-    @group()
-    def _render_stack(self, stack: Stack) -> RenderResult:
-        path_highlighter = PathHighlighter()
-        theme = self.theme
-
-        def read_code(filename: str) -> str:
-            return ''.join(linecache.getlines(filename))
-
-        def render_locals(_frame: Frame) -> Iterable[ConsoleRenderable]:
-            if _frame.locals:
-                yield render_scope(
-                    _frame.locals,
-                    title='locals',
-                    indent_guides=self.indent_guides,
-                    max_length=self.locals_max_length,
-                    max_string=self.locals_max_string,
-                )
-
-        exclude_frames: range | None = None
-        if self.max_frames != 0:
-            exclude_frames = range(len(stack.frames) - self.max_frames + 1)
-
-        excluded = False
-        for frame_index, frame in enumerate(stack.frames):
-            if exclude_frames and frame_index in exclude_frames:
-                excluded = True
-                continue
-
-            if excluded:
-                assert exclude_frames is not None
-                yield Text(
-                    f'\n... {len(exclude_frames)} frames hidden ...',
-                    justify='center',
-                    style='traceback.error',
-                )
-                excluded = False
-
-            first = frame_index == 0
-            frame_filename = frame.filename
-            suppressed = any(frame_filename.startswith(path) for path in self.suppress)
-
-            if os.path.exists(frame.filename):  # noqa: PTH110
-                text = Text.assemble(
-                    path_highlighter(Text(frame.filename, style='pygments.string')),
-                    (':', 'pygments.text'),
-                    (str(frame.lineno), 'pygments.number'),
-                    ' in ',
-                    (frame.name, 'pygments.function'),
-                    style='pygments.text',
-                )
-            else:
-                text = Text.assemble(
-                    'in ',
-                    (frame.name, 'pygments.function'),
-                    (':', 'pygments.text'),
-                    (str(frame.lineno), 'pygments.number'),
-                    style='pygments.text',
-                )
-            if not frame.filename.startswith('<') and not first:
-                yield ''
-            yield text
-            if frame.filename.startswith('<'):
-                yield from render_locals(frame)
-                continue
-            if not suppressed:
-                try:
-                    code = read_code(frame.filename)
-                    if not code:
-                        continue
-                    lexer_name = self._guess_lexer(frame.filename, code)
-                    syntax = Syntax(
-                        code,
-                        lexer_name,
-                        theme=theme,
-                        line_numbers=True,
-                        line_range=(
-                            frame.lineno - self.extra_lines,
-                            frame.lineno + self.extra_lines,
-                        ),
-                        highlight_lines={frame.lineno},
-                        word_wrap=self.word_wrap,
-                        code_width=self.code_width,
-                        indent_guides=self.indent_guides,
-                        dedent=False,
-                    )
-                    yield ''
-                except Exception as error:
-                    yield Text.assemble(
-                        (f'\n{error}', 'traceback.error'),
-                    )
-                else:
-                    yield (
-                        Columns(
-                            [
-                                syntax,
-                                *render_locals(frame),
-                            ],
-                            padding=1,
-                        )
-                        if frame.locals
-                        else syntax
-                    )
-
-
-@dataclass
-class ClanRichTracebackFormatter(structlog.dev.RichTracebackFormatter):
-    color_system: ColorSystem = 'auto'
-    highlight: bool = False
-    max_frames: int = 100
-    width: int | None = None
-
-    def __call__(self, sio: TextIO, exc_info: EXC_INFO) -> None:
-        if self.width is None:
-            self.width, _ = shutil.get_terminal_size((80, 0))
-
-        sio.write('\n')
-        Console(
-            file=sio,
-            color_system=self.color_system,
-            width=self.width,
-            highlight=self.highlight,
-        ).print(
-            ClanTraceback.from_exception(
-                *exc_info,
-                show_locals=self.show_locals,
-                max_frames=self.max_frames,
-                theme=self.theme,
-                word_wrap=self.word_wrap,
-                extra_lines=self.extra_lines,
-                width=self.width,
-                indent_guides=self.indent_guides,
-                locals_max_length=self.locals_max_length,
-                locals_max_string=self.locals_max_string,
-                locals_hide_dunder=self.locals_hide_dunder,
-                locals_hide_sunder=self.locals_hide_sunder,
-                suppress=self.suppress,
-            ),
-        )
-
 
 # ---------------- Log Handler ----------------
 type RotateWhen = Literal['month', 'day', 'hour', 'minute', 'second']
-format_exception_to_io = ClanRichTracebackFormatter()
 
 
 def _init_time_format(when: RotateWhen):
@@ -211,13 +44,13 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
     _wait_time = 0.1
 
     def __init__(
-        self,
-        file_name: Path | str,
-        backup_count: int = 0,
-        mode: str = 'a',
-        encoding='utf-8',
-        time_zone: arrow.arrow.TZ_EXPR | None = None,
-        when: RotateWhen = 'day',
+            self,
+            file_name: Path | str,
+            backup_count: int = 0,
+            mode: str = 'a',
+            encoding='utf-8',
+            time_zone: arrow.arrow.TZ_EXPR | None = None,
+            when: RotateWhen = 'day',
     ):
         super().__init__()
         file_name = Path(file_name).absolute()
@@ -280,7 +113,6 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
                     while True:
                         file.write(handler.format(handler.queue.get_nowait()) + '\n')
             except Exception:
-                print(sys.exc_info())
                 handler.log_exception(sys.exc_info())
 
     @classmethod
@@ -315,7 +147,7 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
                 f'{arrow.now(tz=self.time_zone).format("YYYY-MM-DD HH:mm:ss")} '
                 f'handler {self.file_and_lock[0]} 写入异常\n',
             )
-            format_exception_to_io(file, exc_info)
+            structlog.dev.better_traceback(file, exc_info)
 
     def delete_old_logs(self):
         def unlink_paths(paths: list[Path]):
@@ -361,12 +193,12 @@ class SharedThreadedTimeRotatingHandler(logging.Handler):
 # 删除可能造成死锁的日志调用
 class FileLockWithoutLog(FileLock):
     def acquire(
-        self,
-        timeout: float | None = None,
-        poll_interval: float = 0.05,
-        *,
-        poll_intervall: float | None = None,
-        blocking: bool | None = None,
+            self,
+            timeout: float | None = None,
+            poll_interval: float = 0.05,
+            *,
+            poll_intervall: float | None = None,
+            blocking: bool | None = None,
     ) -> AcquireReturnProxy:
         if timeout is None:
             timeout = self._context.timeout

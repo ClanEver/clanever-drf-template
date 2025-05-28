@@ -12,7 +12,6 @@ from datetime import timedelta
 from pathlib import Path
 
 from django.urls import reverse_lazy
-from django.utils.translation import gettext_lazy as _
 from import_export.formats.base_formats import CSV, DEFAULT_FORMATS
 from kombu import Queue
 

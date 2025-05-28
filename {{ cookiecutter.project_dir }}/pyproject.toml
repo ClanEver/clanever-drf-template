@@ -5,6 +5,7 @@ description = "{{ cookiecutter.description }}"
 dependencies = [
     "arrow",
     "authlib",
+    "better-exceptions",
     "celery",
     "django",
     "django-celery-beat>=2.7.0",
@@ -25,7 +26,6 @@ dependencies = [
     "msgspec",
     "psycopg[binary,pool]",
     "redis",
-    "rich",
     "tenacity",
 ]
 readme = "README.md"

@@ -21,10 +21,6 @@ app.autodiscover_tasks()
 
 @setup_logging.connect
 def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # noqa: A002, ARG001
-    from {{ cookiecutter.project_slug }} import log_setting
-    from utils.log import ClanRichTracebackFormatter, format_exception_to_io
-
-    del log_setting
     logging.config.dictConfig(
         {
             'version': 1,
@@ -32,20 +28,11 @@ def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # no
             'formatters': {
                 'plain_console': {
                     '()': structlog.stdlib.ProcessorFormatter,
-                    'processor': structlog.dev.ConsoleRenderer(
-                        sort_keys=False,
-                        exception_formatter=ClanRichTracebackFormatter(
-                            color_system='truecolor',
-                            highlight=True,
-                        ),
-                    ),
+                    'processor': structlog.dev.ConsoleRenderer(sort_keys=False),
                 },
                 'console_to_file': {
                     '()': structlog.stdlib.ProcessorFormatter,
-                    'processor': structlog.dev.ConsoleRenderer(
-                        colors=False,
-                        exception_formatter=format_exception_to_io,
-                    ),
+                    'processor': structlog.dev.ConsoleRenderer(sort_keys=False, colors=False),
                 },
             },
             'handlers': {
@@ -62,6 +49,14 @@ def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # no
                     'backup_count': settings.LOG_BACKUP_DAYS,
                     'when': 'day',
                 },
+                'celery_error_file': {
+                    'level': logging.ERROR,
+                    'formatter': 'console_to_file',
+                    'class': 'utils.log.SharedThreadedTimeRotatingHandler',
+                    'file_name': settings.LOG_PATH / 'celery_error.log',
+                    'backup_count': settings.LOG_BACKUP_DAYS,
+                    'when': 'day',
+                },
                 'no_output': {
                     'level': loglevel,
                     'class': 'logging.NullHandler',
@@ -69,7 +64,9 @@ def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # no
             },
             'loggers': {
                 'django_structlog.celery.receivers': {
-                    'handlers': (['console', 'celery_file'] if settings.DEBUG else ['celery_file']),
+                    'handlers': (['console', 'celery_file', 'celery_error_file']
+                                 if settings.DEBUG
+                                 else ['celery_file', 'celery_error_file']),
                     'level': loglevel,
                     'propagate': False,
                 },
