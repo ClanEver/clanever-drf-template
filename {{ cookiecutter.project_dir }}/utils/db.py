@@ -9,10 +9,28 @@ from django.db import models
 from django.db.backends.postgresql import operations as django_pgsql_operations
 from rest_framework import serializers
 
-from utils.msgspec import MsgspecDictJsoner, MsgspecJsoner, msgspec_jsoner, msgspec_list_jsoner
+from utils.msgspec import msgspec_jsoner, msgspec_list_jsoner, MsgspecDictJsoner, MsgspecJsoner, MsgspecListJsoner
 
 
-class BaseModel(models.Model):
+def _move_base_field_to_end(fields):
+    create_time_and_update_time = []
+    other_fields = []
+    for field in fields:
+        if field.name in ('create_time', 'update_time'):
+            create_time_and_update_time.append(field)
+        else:
+            other_fields.append(field)
+    return [*other_fields, *create_time_and_update_time]
+
+
+class _ModelBase(models.base.ModelBase):
+    def __new__(cls, name, bases, attrs, **kwargs):
+        cls2 = super().__new__(cls, name, bases, attrs, **kwargs)
+        cls2._meta.local_fields = _move_base_field_to_end(cls2._meta.local_fields)
+        return cls2
+
+
+class BaseModel(models.Model, metaclass=_ModelBase):
     create_time = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
     update_time = models.DateTimeField(verbose_name='更新时间', auto_now=True)
 
@@ -80,18 +98,32 @@ class DictField(MsgspecJsonField):
         super().validate(value, model_instance)
 
 
+class ListField(MsgspecJsonField):
+    def __init__(self, *args, default=list, **kwargs):
+        kwargs.setdefault('encoder', MsgspecListJsoner)
+        kwargs.setdefault('decoder', MsgspecListJsoner)
+        super().__init__(*args, default=default, **kwargs)
+
+    def validate(self, value, model_instance):
+        if not isinstance(value, list):
+            raise ValidationError(f'Value 必须为 list: {value}')
+        super().validate(value, model_instance)
+
+
 class MsgspecArrayField(ArrayField):
     def __init__(self, base_field, *args, **kwargs):
         kwargs.setdefault('default', list)
         super().__init__(base_field, *args, **kwargs)
 
     def to_python(self, value):
+        """改用 msgspec_list_jsoner.decode"""
         if isinstance(value, str):
             vals = msgspec_list_jsoner.decode(value)
             value = [self.base_field.to_python(val) for val in vals]
         return value
 
     def value_to_string(self, obj):
+        """改用 msgspec_list_jsoner.encode"""
         values = []
         vals = self.value_from_object(obj)
         base_field = self.base_field
@@ -107,6 +139,7 @@ class MsgspecArrayField(ArrayField):
 
 serializers.ModelSerializer.serializer_field_mapping[MsgspecJsonField] = serializers.JSONField
 serializers.ModelSerializer.serializer_field_mapping[DictField] = serializers.DictField
+serializers.ModelSerializer.serializer_field_mapping[ListField] = serializers.ListField
 serializers.ModelSerializer.serializer_field_mapping[MsgspecArrayField] = serializers.ListField
 
 
