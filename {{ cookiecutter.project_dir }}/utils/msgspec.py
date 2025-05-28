@@ -10,8 +10,8 @@ class _MsgspecJsoner:
         self.encoder = _encoder
         self.decoder = msgspec.json.Decoder(msgspec_type)
 
-    def encode(self, obj, *args, **kwargs):
-        return self.encoder.encode(obj)
+    def encode(self, obj, *args, **kwargs) -> str:
+        return self.encoder.encode(obj).decode()
 
     def decode(self, obj, *args, **kwargs):
         return self.decoder.decode(obj)
