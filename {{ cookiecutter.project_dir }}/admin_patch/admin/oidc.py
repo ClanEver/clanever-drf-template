@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.safestring import mark_safe
 
 from admin_patch.models import OidcProvider, OidcUser
@@ -24,8 +24,12 @@ class OidcProviderAdmin(BaseModelAdmin):
     @admin.action(description="删除对象缓存")
     def delete_cache(self, request, queryset):
         from admin_patch.views.oidc import OidcViewSet
-        for i in queryset.only('name').iterator():
-            OidcViewSet.delete_oidc_provider_cache(i.name)
+        try:
+            for i in queryset.only('name').iterator():
+                OidcViewSet.delete_oidc_provider_cache(i.name)
+            self.message_user(request, '删除缓存成功', level=messages.SUCCESS)
+        except Exception as e:
+            self.message_user(request, f'删除缓存时遇到错误: {e!r}', level=messages.ERROR)
 
 
 @admin.register(OidcUser)
