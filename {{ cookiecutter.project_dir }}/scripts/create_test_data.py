@@ -13,3 +13,9 @@ if __name__ == '__main__':
     else:
         admin = User.objects.create_superuser(username='admin', password='admin')
         print('admin user created')
+
+    if test_user := User.objects.filter(username='testuser').first():
+        print('test user already exists')
+    else:
+        test_user = User.objects.create_superuser(username='testuser', password='testuser')
+        print('test user created')

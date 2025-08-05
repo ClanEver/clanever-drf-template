@@ -1,0 +1,93 @@
+[settings]
+python.uv_venv_auto = true
+task_output = "interleave"
+jobs = 16
+
+[tasks.startapp]
+run = 'cookiecutter https://github.com/ClanEver/clanever-drf-app-template.git'
+
+[tasks.dev_db]
+run = 'docker compose -f scripts/docker-dev-db.yaml up'
+
+[tasks.dev_db_up_d]
+run = 'docker compose -f scripts/docker-dev-db.yaml up -d'
+
+[tasks.dev_db_stop]
+run = 'docker compose -f scripts/docker-dev-db.yaml stop'
+
+[tasks.dev_db_down]
+run = 'docker compose -f scripts/docker-dev-db.yaml down'
+
+[tasks.dev_db_clean]
+run = 'docker compose -f scripts/docker-dev-db.yaml down --timeout 0 && rm -rf scripts/test_dev'
+
+[tasks.dev]
+depends = ["dev_db_up_d"]
+depends_post = ["dev_db_stop"]
+env.DJANGO_CONFIG = 'dev'
+run = 'python manage.py runserver 38888'
+
+[tasks.dev_makem]
+env.DJANGO_CONFIG = 'dev'
+run = 'python manage.py makemigrations'
+
+[tasks.dev_migrate]
+env.DJANGO_CONFIG = 'dev'
+run = 'python manage.py migrate'
+
+[tasks.dev_test_data]
+env.DJANGO_CONFIG = 'dev'
+env.PYTHONPATH = '.'
+run = 'python scripts/create_test_data.py'
+
+[tasks.dev_mnm]
+run = [
+    'mise run dev_db_up_d',
+    'mise run dev_makem',
+    'mise run dev_migrate',
+    'mise run dev_test_data',
+    'mise run dev_db_stop',
+]
+
+[tasks.dev_cu]
+depends = ["dev_db_up_d"]
+depends_post = ["dev_db_stop"]
+env.DJANGO_CONFIG = 'dev'
+run = 'python manage.py createsuperuser'
+
+[tasks.dev_c_beat]
+depends = ["dev_db_up_d"]
+env.DJANGO_CONFIG = 'dev'
+run = 'celery -A {{ cookiecutter.project_slug }} beat -l INFO'
+
+[tasks.dev_c_worker]
+depends = ["dev_db_up_d"]
+env.DJANGO_CONFIG = 'dev'
+run = 'celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -P solo'
+
+[tasks.dev_c_flower]
+depends = ["dev_db_up_d"]
+env.DJANGO_CONFIG = 'dev'
+run = 'celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --url_prefix=admin/flower'
+
+[tasks.dev_c]
+depends = ["dev", "dev_c_beat", "dev_c_worker", "dev_c_flower"]
+depends_post = ["dev_db_stop"]
+env.DJANGO_CONFIG = 'dev'
+run = "echo dev server exit"
+
+[tasks.rung]
+env.DJANGO_CONFIG = 'prod'
+run = "gunicorn -c gunicorn_config.py {{ cookiecutter.project_slug }}.wsgi"
+
+[tasks.start]
+env.DJANGO_CONFIG = 'prod'
+run = "bash scripts/start.sh"
+
+[tasks.stop]
+env.DJANGO_CONFIG = 'prod'
+run = "bash scripts/stop.sh"
+
+[tasks.restart]
+env.DJANGO_CONFIG = 'prod'
+run = "bash scripts/restart.sh"

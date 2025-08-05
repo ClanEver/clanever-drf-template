@@ -2,8 +2,6 @@
 
 一个简单的 drf 模板，面向场景为企业内部服务 API，跳过新建项目和集成等琐碎步骤。
 
-使用 [rye](https://github.com/mitsuhiko/rye) 和 [cookiecutter](https://github.com/cookiecutter/cookiecutter) 工具
-
 ## 魔改
 
 - 接口仅允许 OIDC 登录，客户端依赖 [Authlib]()
@@ -38,11 +36,11 @@
 
 ## 使用方法
 
-1. 安装 [rye](https://github.com/mitsuhiko/rye)
+1. 安装 [uv](https://github.com/mitsuhiko/rye) 和 [mise](https://github.com/jdx/mise)
 
-2. 使用 rye 安装 cookiecutter
+2. 使用 uv 安装 cookiecutter
     ```shell
-    rye install cookiecutter --extra-requirement jinja2-strcase --extra-requirement tomlkit
+    uv tool install cookiecutter --with jinja2-strcase --with tomlkit
     ```
 
 3. 使用此模板
@@ -53,14 +51,14 @@
 4. 更改 settings.py 然后在开发环境中运行
     ```shell
     # 创建迁移并应用迁移
-    rye run dev_mnm
+    mise run dev_mnm
     # 运行服务器
-    rye run dev
+    mise run dev
     ```
 
 5. [可选] 使用应用模板
     ```shell
-    rye run startapp
+    mise run startapp
     # 或
     cookiecutter https://github.com/ClanEver/clanever-drf-app-template.git
     ```

@@ -1,72 +1,41 @@
 [project]
-name = "{{ cookiecutter.project_name|trim() }}"
-version = "0.1.0"
-description = "{{ cookiecutter.description }}"
+name = '{{ cookiecutter.project_name|trim() }}'
+version = '0.1.0'
+description = '{{ cookiecutter.description }}'
+readme = 'README.md'
+requires-python = '>= 3.12'
 dependencies = [
-    "arrow",
-    "authlib",
-    "better-exceptions",
-    "celery",
-    "django",
-    "django-celery-beat>=2.7.0",
-    "django-celery-results",
-    "django-filter",
-    "django-import-export",
-    "django-rest-knox",
-    "django-revproxy",
-    "django-structlog",
-    "django-unfold",
-    "djangorestframework",
-    "drf-spectacular[sidecar]",
-    "filelock",
-    "flower",
-    "httpx",
-    "gunicorn",
-    "more-itertools",
-    "msgspec",
-    "psycopg[binary,pool]",
-    "redis",
-    "tenacity",
+    'arrow',
+    'authlib',
+    'better-exceptions',
+    'celery',
+    'django',
+    'django-celery-beat>=2.7.0',
+    'django-celery-results',
+    'django-filter',
+    'django-import-export',
+    'django-rest-knox',
+    'django-revproxy',
+    'django-structlog',
+    'django-unfold',
+    'djangorestframework',
+    'drf-spectacular[sidecar]',
+    'filelock',
+    'flower',
+    'httpx',
+    'gunicorn',
+    'more-itertools',
+    'msgspec',
+    'psycopg[binary,pool]',
+    'redis',
+    'tenacity',
 ]
-readme = "README.md"
-requires-python = ">= 3.12"
 
-[tool.rye]
-managed = true
-virtual = true
-dev-dependencies = ["django-stubs"]
-
-[tool.rye.scripts]
-startapp = { cmd = "cookiecutter https://github.com/ClanEver/clanever-drf-app-template.git" }
-
-dev = { cmd = "python manage.py runserver", env = { DJANGO_CONFIG = "dev" } }
-dev_makem = { cmd = "python manage.py makemigrations", env = { DJANGO_CONFIG = "dev" } }
-dev_migrate = { cmd = "python manage.py migrate", env = { DJANGO_CONFIG = "dev" } }
-dev_test_data = { cmd = "python scripts/create_test_data.py", env = { DJANGO_CONFIG = "dev", PYTHONPATH = "." } }
-dev_mnm = { chain = ["dev_makem", "dev_migrate", "dev_test_data"] }
-dev_cu = { cmd = "python manage.py createsuperuser", env = { DJANGO_CONFIG = "dev" } }
-dev_c_beat = { cmd = "celery -A {{ cookiecutter.project_slug }} beat -l INFO", env = { DJANGO_CONFIG = "dev" } }
-dev_c_worker = { cmd = "celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -P solo", env = { DJANGO_CONFIG = "dev" } }
-dev_c_flower = { cmd = "celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --url_prefix=admin/flower", env = { DJANGO_CONFIG = "dev" } }
-dev_c = { cmd = """fish -c
-'function run_celery
-    rye run dev_c_beat &
-    rye run dev_c_worker &
-    rye run dev_c_flower &
-    function cleanup --on-signal INT
-        kill (jobs -p)
-        exit
-    end
-    wait
-end
-run_celery'
-""", env = { DJANGO_CONFIG = "dev" } }
-
-rung = { cmd = "gunicorn -c gunicorn_config.py {{ cookiecutter.project_slug }}.wsgi", env = { DJANGO_CONFIG = "prod" } }
-start = { cmd = "bash scripts/start.sh", env = { DJANGO_CONFIG = "prod" } }
-stop = { cmd = "bash scripts/stop.sh", env = { DJANGO_CONFIG = "prod" } }
-restart = { cmd = "bash scripts/restart.sh", env = { DJANGO_CONFIG = "prod" } }
+[dependency-groups]
+dev = [
+    'django-stubs',
+]
 
 [tool.pyright]
-venvPath = "."
-venv = ".venv"
+venvPath = '.'
+venv = '.venv'

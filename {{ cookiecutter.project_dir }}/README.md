@@ -41,9 +41,9 @@ python manage.py collectstatic
 
 ```shell
 # 启动 worker
-rye run dev_c_worker
+mise run dev_c_worker
 # 或指定队列
-rye run dev_c_worker -Q celery,priority
+mise run dev_c_worker -Q celery,priority
 # 或
 celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q celery -P solo
 # 注意 -P solo 为单进程模式，不适用于生产环境
@@ -51,15 +51,15 @@ celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q celery -P solo
 
 # 启动 beat
 # beat 只需要 1 个实例
-rye run dev_c_beat
+mise run dev_c_beat
 # 或
 celery -A {{ cookiecutter.project_slug }} beat -l INFO
 
 # 启动 flower
-rye run dev_c_flower
+mise run dev_c_flower
 # or
 celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --url_prefix=flower
 
-# 如果使用 fish shell, 可以同时启动 worker, beat, flower
-rye run dev_c
+# 同时启动 server, beat, worker, flower
+mise run dev_c
 ```

@@ -89,11 +89,11 @@ class ProdConfig(__BaseConfig):
 
 
 DJANGO_CONFIG = os.environ.get('DJANGO_CONFIG', 'dev')
-config = {
+config: type[__BaseConfig] = {
     'dev': DevConfig,
     'test': TestConfig,
     'prod': ProdConfig,
-}.get(DJANGO_CONFIG)
+}[DJANGO_CONFIG]
 
 
 # ---------------- Django Settings ----------------

@@ -71,10 +71,12 @@ def set_django_secret_key(file_path: Path):
 
 def set_dependencies_version_in_pyproject():
     try:
-        output = os.popen('rye list').read()
+        output = os.popen('uv pip list').read()
         packages = {}
-        for line in output.split('\n'):
-            match = re.match(r'(\S+)==(\S+)', line)
+        for idx, line in enumerate(output.split('\n')):
+            if idx <= 1:
+                continue
+            match = re.match(r'(\S+) +(\S+)', line)
             if match:
                 packages[match.group(1)] = match.group(2)
         if not packages:
@@ -84,18 +86,23 @@ def set_dependencies_version_in_pyproject():
         with pyproject_file.open('r') as f:
             pyproject = tomlkit.load(f)
 
-        for idx, raw_dep in enumerate(pyproject['project']['dependencies']):
-            if '>=' in raw_dep:
-                dep = raw_dep.split('>=')[0]
-            elif '~=' in raw_dep:
-                dep = raw_dep.split('~=')[0]
-            elif '==' in raw_dep:
-                dep = raw_dep.split('==')[0]
-            else:
-                dep = raw_dep
-            dep_without_feat = dep.split('[', 1)[0]
-            if dep_without_feat in packages:
-                pyproject['project']['dependencies'][idx] = f'{dep}~={packages[dep_without_feat]}'
+        def process_deps(deps: list[str]):
+            for idx, raw_dep in enumerate(deps):
+                if '>=' in raw_dep:
+                    dep = raw_dep.split('>=')[0]
+                elif '~=' in raw_dep:
+                    dep = raw_dep.split('~=')[0]
+                elif '==' in raw_dep:
+                    dep = raw_dep.split('==')[0]
+                else:
+                    dep = raw_dep
+                dep_without_feat = dep.split('[', 1)[0]
+                if dep_without_feat in packages:
+                    deps[idx] = f'{dep}~={packages[dep_without_feat]}'
+
+        process_deps(pyproject['project']['dependencies'])
+        for i in pyproject['dependency-groups'].values():
+            process_deps(i)
 
         with pyproject_file.open('w') as f:
             tomlkit.dump(pyproject, f)
@@ -106,7 +113,7 @@ def set_dependencies_version_in_pyproject():
 def main():
     production_django_envs_path = Path('{{ cookiecutter.project_slug }}/settings.py')
     set_django_secret_key(production_django_envs_path)
-    os.system('rye sync')
+    os.system('uv sync')
     set_dependencies_version_in_pyproject()
 
 

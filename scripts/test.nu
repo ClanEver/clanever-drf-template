@@ -8,18 +8,10 @@ rm -rf my-django-project
 
 cookiecutter ../ --no-input
 cd my-django-project
-rye run dev_mnm
 
-let VENV_PYTHON = ".venv/bin/python"
-
-^$VENV_PYTHON manage.py shell -c "
-from django.contrib.auth import get_user_model
-User = get_user_model()
-User.objects.create_superuser('admin', 'admin@example.com', 'admin')"
-
-^$VENV_PYTHON manage.py shell -c "
-from django.contrib.auth import get_user_model
-User = get_user_model()
-User.objects.create_user(username='testuser', email='staff@example.com', password='testuser', is_staff=True)"
-
-rye run dev 38888
+mise trust mise.toml
+mise run dev_db_clean
+mise run dev_db_up_d
+sleep 3
+mise run dev_mnm
+mise run dev
