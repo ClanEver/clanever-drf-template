@@ -107,6 +107,10 @@ SECRET_KEY = 'django-insecure-!!!SET DJANGO SECRET KEY!!!'
 DEBUG = config.DEBUG
 
 ALLOWED_HOSTS = config.ALLOWED_HOSTS
+if DEBUG:
+    INTERNAL_IPS = [
+        '127.0.0.1',
+    ]
 
 # Application definition
 SITE_ID = 1
@@ -136,12 +140,14 @@ INSTALLED_APPS = [
     'django_celery_results',
     'django_celery_beat',
     'import_export',
+    *(['debug_toolbar'] if DEBUG else []),
     'admin_patch',
     # --- your apps ---
     '{{ cookiecutter.app_name }}',
 ]
 
 MIDDLEWARE = [
+    *(['debug_toolbar.middleware.DebugToolbarMiddleware'] if DEBUG else []),
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

@@ -18,6 +18,7 @@
     - [django-celery-beat](https://github.com/celery/django-celery-beat)
     - [django-celery-results](https://github.com/celery/django-celery-results)
     - [flower](https://github.com/mher/flower) [[文档](https://flower.readthedocs.io/en/latest/)]
+- [django-debug-toolbar](https://github.com/django-commons/django-debug-toolbar) [[文档](https://django-debug-toolbar.readthedocs.io/en/latest/index.html)]
 - [django-import-export](https://github.com/django-import-export/django-import-export) [[文档](https://django-import-export.readthedocs.io/en/latest/)]
 - [django-structlog](https://github.com/jrobichaud/django-structlog) [[文档](https://django-structlog.readthedocs.io/en/latest/)]
     - [structlog](https://github.com/hynek/structlog) [[文档](https://www.structlog.org/en/stable/)]
