@@ -1,5 +1,5 @@
 """
-Something copy from https://github.com/cookiecutter/cookiecutter-django/blob/master/hooks/post_gen_project.py
+Something copy from https://github.com/cookiecutter/cookiecutter-django/blob/master/hooks/post_gen_project.py (https://github.com/cookiecutter/cookiecutter-django/blob/main/LICENSE)
 """
 
 import os
@@ -42,7 +42,7 @@ def set_flag(file_path: Path, flag, value=None, formatted=None, *args, **kwargs)
         if random_string is None:
             print(
                 "We couldn't find a secure pseudo-random number generator on your "
-                f'system. Please, make sure to manually {flag} later.'
+                f'system. Please, make sure to manually {flag} later.',
             )
             random_string = flag
         if formatted is not None:
@@ -58,15 +58,27 @@ def set_flag(file_path: Path, flag, value=None, formatted=None, *args, **kwargs)
     return value
 
 
-def set_django_secret_key(file_path: Path):
-    return set_flag(
-        file_path,
-        '!!!SET DJANGO_SECRET_KEY!!!',
+def set_secrets():
+    django_settings_file = Path('{{ cookiecutter.project_slug }}/settings.py')
+    dev_db_docker_compose = Path('scripts/docker-dev-db.yaml')
+    set_flag(
+        django_settings_file,
+        '!!!SET DJANGO SECRET KEY!!!',
         length=50,
         using_digits=True,
         using_ascii_letters=True,
         using_punctuation=True,
     )
+
+    pg_password = generate_random_string(30, True, True, False)
+    pg_flag = '!!!SET DEV POSTGRES PASSWORD!!!'
+    set_flag(django_settings_file, pg_flag, pg_password)
+    set_flag(dev_db_docker_compose, pg_flag, pg_password)
+
+    redis_password = generate_random_string(30, True, True, False)
+    redis_flag = '!!!SET DEV REDIS PASSWORD!!!'
+    set_flag(django_settings_file, redis_flag, redis_password)
+    set_flag(dev_db_docker_compose, redis_flag, redis_password)
 
 
 def set_dependencies_version_in_pyproject():
@@ -111,8 +123,7 @@ def set_dependencies_version_in_pyproject():
 
 
 def main():
-    production_django_envs_path = Path('{{ cookiecutter.project_slug }}/settings.py')
-    set_django_secret_key(production_django_envs_path)
+    set_secrets()
     os.system('uv sync')
     set_dependencies_version_in_pyproject()
 

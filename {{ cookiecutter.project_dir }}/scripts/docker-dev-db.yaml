@@ -1,20 +1,45 @@
 name: django-test-db
 
+configs:
+  redis_conf:
+    content: |
+      requirepass !!!SET DEV REDIS PASSWORD!!!
+
 services:
   postgres:
     image: postgres:17.5-alpine3.21
+    init: true
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=!!!SET DEV POSTGRES PASSWORD!!!
       - POSTGRES_DB=django_db
     ports:
       - "25432:5432"
     volumes:
       - ./test_dev/pgsql:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 1s
 
   redis:
     image: redis:8.0.1-alpine
+    init: true
     ports:
       - "26379:6379"
     volumes:
       - ./test_dev/redis_data:/data
+    configs:
+      - source: redis_conf
+        target: /etc/redis/redis.conf
+    entrypoint: 
+      - redis-server
+      - /etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 1s

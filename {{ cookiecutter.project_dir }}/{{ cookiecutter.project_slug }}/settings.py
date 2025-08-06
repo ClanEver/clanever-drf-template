@@ -38,13 +38,13 @@ class __BaseConfig:  # noqa: N801
 
 class DevConfig(__BaseConfig):
     DEBUG = True
-    REDIS_URL: str = 'redis://:@127.0.0.1:26379/0'
+    REDIS_URL: str = 'redis://:!!!SET DEV REDIS PASSWORD!!!@127.0.0.1:26379/0'
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'django_db',
             'USER': 'postgres',
-            'PASSWORD': 'postgres',
+            'PASSWORD': '!!!SET DEV POSTGRES PASSWORD!!!',
             'HOST': '127.0.0.1',
             'PORT': '25432',
             'OPTIONS': {
@@ -101,7 +101,7 @@ config: type[__BaseConfig] = {
 # See https://docs.djangoproject.com/zh-hans/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!!!SET DJANGO_SECRET_KEY!!!'
+SECRET_KEY = 'django-insecure-!!!SET DJANGO SECRET KEY!!!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config.DEBUG
