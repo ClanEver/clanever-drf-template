@@ -10,7 +10,7 @@ run = 'cookiecutter https://github.com/ClanEver/clanever-drf-app-template.git'
 run = 'docker compose -f scripts/docker-dev-db.yaml up'
 
 [tasks.dev_db_up_d]
-run = 'docker compose -f scripts/docker-dev-db.yaml up -d'
+run = 'docker compose -f scripts/docker-dev-db.yaml up --wait --no-recreate'
 
 [tasks.dev_db_stop]
 run = 'docker compose -f scripts/docker-dev-db.yaml stop'
@@ -23,7 +23,6 @@ run = 'docker compose -f scripts/docker-dev-db.yaml down --timeout 0 && rm -rf s
 
 [tasks.dev]
 depends = ["dev_db_up_d"]
-depends_post = ["dev_db_stop"]
 env.DJANGO_CONFIG = 'dev'
 run = 'python manage.py runserver 38888'
 
@@ -46,12 +45,10 @@ run = [
     'mise run dev_makem',
     'mise run dev_migrate',
     'mise run dev_test_data',
-    'mise run dev_db_stop',
 ]
 
 [tasks.dev_cu]
 depends = ["dev_db_up_d"]
-depends_post = ["dev_db_stop"]
 env.DJANGO_CONFIG = 'dev'
 run = 'python manage.py createsuperuser'
 
@@ -72,7 +69,6 @@ run = 'celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --ur
 
 [tasks.dev_c]
 depends = ["dev", "dev_c_beat", "dev_c_worker", "dev_c_flower"]
-depends_post = ["dev_db_stop"]
 env.DJANGO_CONFIG = 'dev'
 run = "echo dev server exit"
 

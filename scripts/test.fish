@@ -11,6 +11,5 @@ cd my-django-project
 mise trust mise.toml
 mise run dev_db_clean
 mise run dev_db_up_d
-sleep 3
 mise run dev_mnm
 mise run dev
