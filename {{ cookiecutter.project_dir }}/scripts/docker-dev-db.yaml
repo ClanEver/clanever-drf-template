@@ -1,4 +1,4 @@
-name: django-test-db
+name: {{ cookiecutter.project_dir }}
 
 configs:
   redis_conf:

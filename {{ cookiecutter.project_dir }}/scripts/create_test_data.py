@@ -2,10 +2,9 @@ import os
 
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'my_django_project.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{{ cookiecutter.project_slug }}.settings')
 django.setup()
-from admin_patch.models import User, OidcProvider
-
+from admin_patch.models import User
 
 if __name__ == '__main__':
     if admin := User.objects.filter(username='admin').first():
