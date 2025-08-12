@@ -92,7 +92,7 @@ def set_dependencies_version_in_pyproject():
             if match:
                 packages[match.group(1)] = match.group(2)
         if not packages:
-            raise OSError('Cannot use rye')
+            raise OSError('list packages error: no packages found in output')
 
         pyproject_file = Path('pyproject.toml')
         with pyproject_file.open('r') as f:
