@@ -64,7 +64,7 @@ class Wrap5xxErrorMiddleware(MiddlewareMixin):
         if settings.DEBUG or response.status_code <= 499 or isinstance(response, Response):
             return response
 
-        error_response = Response({'detail': _()}, status=response.status_code)
+        error_response = Response({'detail': _('A server error occurred.')}, status=response.status_code)
         error_response.accepted_renderer = MsgspecJSONRenderer()
         error_response.accepted_media_type = 'application/json'
         error_response.renderer_context = {}
