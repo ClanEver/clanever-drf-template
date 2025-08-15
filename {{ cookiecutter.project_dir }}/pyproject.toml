@@ -7,7 +7,6 @@ requires-python = '==3.13.*'
 dependencies = [
     'arrow',
     'authlib',
-    'better-exceptions',
     'celery',
     'django',
     'django-celery-beat>=2.7.0',
