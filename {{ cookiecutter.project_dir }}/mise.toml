@@ -7,10 +7,16 @@ jobs = 16
 run = 'cookiecutter https://github.com/ClanEver/clanever-drf-app-template.git'
 
 [tasks.dev_db]
-run = 'docker compose -f scripts/docker-dev-db.yaml up'
+run = [
+    'mkdir -p ./scripts/test_dev/pgsql ./scripts/test_dev/redis',
+    'D_UID=$(id -u) D_GID=$(id -g) docker compose -f scripts/docker-dev-db.yaml up'
+]
 
 [tasks.dev_db_up_d]
-run = 'docker compose -f scripts/docker-dev-db.yaml up --wait --no-recreate'
+run = [
+    'mkdir -p ./scripts/test_dev/pgsql ./scripts/test_dev/redis',
+    'D_UID=$(id -u) D_GID=$(id -g) docker compose -f scripts/docker-dev-db.yaml up --wait --no-recreate'
+]
 
 [tasks.dev_db_stop]
 run = 'docker compose -f scripts/docker-dev-db.yaml stop'

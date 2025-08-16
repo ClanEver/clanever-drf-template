@@ -9,6 +9,7 @@ services:
   postgres:
     image: postgres:17.5-alpine3.21
     init: true
+    user: "${D_UID:-1000}:${D_GID:-1000}"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=!!!SET DEV POSTGRES PASSWORD!!!
@@ -18,7 +19,7 @@ services:
     volumes:
       - ./test_dev/pgsql:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,10 +28,11 @@ services:
   redis:
     image: redis:8.0.1-alpine
     init: true
+    user: "${D_UID:-1000}:${D_GID:-1000}"
     ports:
       - "26379:6379"
     volumes:
-      - ./test_dev/redis_data:/data
+      - ./test_dev/redis:/data
     configs:
       - source: redis_conf
         target: /etc/redis/redis.conf
