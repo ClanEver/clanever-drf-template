@@ -1,8 +1,8 @@
 #!/bin/bash
 
-APP="{{ cookiecutter.project_dir }}"
-THIS_DIR=$(dirname "$0")
-BASE_DIR=$(dirname "$THIS_DIR")
+APP="{{ cookiecutter.project_slug }}"
+SCRIPT_DIR=$(dirname "$0")
+BASE_DIR=$(dirname "$SCRIPT_DIR")
 
 # 查找进程PID
 pid=$(ps aux | grep "$APP" | grep -v grep | awk '{print $2}')
@@ -12,8 +12,8 @@ if [[ -n "$pid" ]]; then
 fi
 
 # 启动进程
-cd $BASE_DIR/src
-nohup rye run rung > nohup.out 2>&1 &
+cd $BASE_DIR
+nohup gunicorn -c gunicorn_config.py {{ cookiecutter.project_slug }}.wsgi > nohup.out 2>&1 &
 
 sleep 1  # 等待进程启动
 pid=$(ps aux | grep "$APP" | grep -v grep | awk '{print $2}')

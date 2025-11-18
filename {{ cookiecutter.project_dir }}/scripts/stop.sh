@@ -1,6 +1,6 @@
 #!/bin/bash
 
-APP="{{ cookiecutter.project_dir }}"
+APP="{{ cookiecutter.project_slug }}"
 
 # 查找进程PID
 pid=$(ps aux | grep "$APP" | grep -v grep | awk '{print $2}')

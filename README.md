@@ -52,9 +52,11 @@
 4. 更改 settings.py 然后在开发环境中运行
     ```shell
     # 创建迁移并应用迁移
-    mise run dev_mnm
+    mise run mnm
     # 运行服务器
     mise run dev
+    # 运行服务器和 celery
+    mise run all
     ```
 
 5. [可选] 使用应用模板
