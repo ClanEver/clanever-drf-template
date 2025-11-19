@@ -46,14 +46,24 @@ class User(AbstractUser):
 
 
 class OidcProvider(BaseModel):
-    name = models.CharField(verbose_name='名称', max_length=100, unique=True, validators=[oidc_name_validator], help_text='仅字母或数字')
+    name = models.CharField(verbose_name='名称', max_length=100, unique=True, validators=[oidc_name_validator],
+                            help_text='仅字母或数字')
+    display_name = models.CharField(verbose_name='显示名称', max_length=100, blank=True)
     client_id = models.CharField()
     client_secret = models.CharField()
     base_url = models.URLField(help_text='示例: https://authentik.example.com/application/o/app_name/')
-    private_key = models.TextField(verbose_name='私钥', blank=True, help_text='如果供应者开启了加密, 则需要填入 pem 密钥')
-    cache_expire_length = models.IntegerField(verbose_name='缓存过期时间 (s)', default=600, help_text='对象在内存缓存中缓存的时长, 生产环境可以改长一些')
+    private_key = models.TextField(verbose_name='私钥', blank=True,
+                                   help_text='如果供应者开启了加密, 则需要填入 pem 密钥')
+    cache_expire_length = models.IntegerField(verbose_name='缓存过期时间 (s)', default=600,
+                                              help_text='对象在内存缓存中缓存的时长, 生产环境可以改长一些')
     icon_url = models.URLField('图标 url', blank=True, help_text='供应商图标图片 url, 应优先使用此字段, 其次使用图标名')
-    icon_name = models.CharField('图标名', blank=True, help_text=mark_safe('Material Icon 名称, 示例: login, 参考: <a href="https://fonts.google.com/icons" class="text-primary-600 dark:text-primary-500">https://fonts.google.com/icons</a>'))
+    icon_name = models.CharField('图标名', blank=True, help_text=mark_safe(
+        'Material Icon 名称, 示例: login, 参考: <a href="https://fonts.google.com/icons" class="text-primary-600 dark:text-primary-500">https://fonts.google.com/icons</a>'))
+
+    sub_field = models.CharField('sub 字段', max_length=50, default='sub', help_text='对应 OidcUser.sub')
+    email_field = models.CharField('email 字段', max_length=50, default='email', help_text='对应 User.email')
+    username_field = models.CharField('username 字段', max_length=50, default='preferred_username', help_text='对应 User.username')
+    name_field = models.CharField('name 字段', max_length=50, default='name', help_text='对应 User.first_name')
 
     _well_known: dict
     _jwks: dict
@@ -76,6 +86,8 @@ class OidcProvider(BaseModel):
     def jwks(self):
         if not getattr(self, '_jwks', None):
             url = self.well_known['jwks_uri']
+            if self.base_url.startswith('http://'):
+                url = url.replace('https://', 'http://', 1)
             self._jwks = httpx.get(url).json()
         return self._jwks
 

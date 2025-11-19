@@ -42,25 +42,37 @@ python manage.py collectstatic
 
 ```shell
 # 启动 worker
-mise run dev_c_worker
+mise run c_worker
 # 或指定队列
-mise run dev_c_worker -Q celery,priority
+mise run c_worker -Q celery,priority
 # 或
-celery -A {{ cookiecutter.project_slug }} worker -l INFO -c 2 -Q celery -P solo
+celery -A {{ cookiecutter.project_slug }} worker -l INFO -Q celery -P solo
 # 注意 -P solo 为单进程模式，不适用于生产环境
 # 生产应不设置（等同于使用 prefork）或 gevent（需要安装）
+# -c 设置并发数 例如 -c 2
 
 # 启动 beat
 # beat 只需要 1 个实例
-mise run dev_c_beat
+mise run c_beat
 # 或
 celery -A {{ cookiecutter.project_slug }} beat -l INFO
 
 # 启动 flower
-mise run dev_c_flower
+mise run c_flower
 # or
-celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --url_prefix=flower
+celery -A {{ cookiecutter.project_slug }} flower --address=127.0.0.1 --url_prefix=admin/flower
 
 # 同时启动 server, beat, worker, flower
-mise run dev_c
+mise run all
 ```
+
+## Oidc 服务配置示例
+
+- Authentik
+   - base_url: <your-domain>/application/o/<provider-name-in-authentik>
+- Gitlab
+   - base_url: <your-domain>
+- Casdoor
+   - base_url: <your-domain>
+   - username 字段 (username_field): name
+   - name 字段 (name_field): displayName

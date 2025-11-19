@@ -2,7 +2,9 @@
 python.uv_venv_auto = true
 task_output = "interleave"
 jobs = 16
-env.DJANGO_CONFIG = 'dev'
+
+[env]
+DJANGO_CONFIG = 'dev'
 
 [tasks.startapp]
 run = 'cookiecutter https://github.com/ClanEver/clanever-drf-app-template.git'
@@ -72,4 +74,4 @@ run = 'mise tasks run c-beat ::: c-worker ::: c-flower'
 
 [tasks.all]
 depends = ["db-up-d"]
-run = 'mise tasks run dev ::: c-beat ::: c-worker ::: c-flower'
+run = 'mise tasks run dev ::: c'

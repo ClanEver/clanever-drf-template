@@ -9,7 +9,8 @@ from django.core.cache import cache
 from django.db.transaction import atomic
 from django.shortcuts import redirect
 from django.urls import reverse
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from knox.models import AuthToken
 from knox.settings import knox_settings
 from rest_framework import mixins, status, viewsets
@@ -20,7 +21,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from admin_patch.models import OidcProvider, OidcUser, User
-from admin_patch.serializers.oidc import OidcCallbackSerializer, OidcLoginSerializer, OidcProviderSerializer
+from admin_patch.serializers.oidc import OidcCallbackSerializer, OidcLoginResponseSerializer, OidcProviderSerializer
 from utils.common import random_str
 from utils.exception import APIException
 
@@ -34,6 +35,7 @@ class OidcViewSet(
     permission_classes = [AllowAny]
     pagination_class = None
     jwe = JsonWebEncryption()
+    lookup_field = 'name'
 
     @staticmethod
     def get_oidc_provider(name: str):
@@ -51,40 +53,33 @@ class OidcViewSet(
     @staticmethod
     def get_redirect_uri(request: Request, provider: str):
         base_url = f'{request.scheme}://{request.get_host()}'
-        callback_path = reverse('oidc-callback', kwargs={'pk': provider})
+        callback_path = reverse('oidc-callback', kwargs={'name': provider})
         return urljoin(base_url, callback_path)
 
     @staticmethod
     def get_or_create_user(provider: OidcProvider, jwt_dict: dict):
-        oidc_info = {
-            'sub': jwt_dict['sub'],
-            'email': jwt_dict['email'],
-            'preferred_username': jwt_dict['preferred_username'],
-            'given_name': jwt_dict.get('given_name'),
-            'groups': jwt_dict.get('groups'),
-            'name': jwt_dict.get('name'),
-            'nickname': jwt_dict.get('nickname'),
-        }
+        oidc_info = jwt_dict.copy()
+        for i in ['aud', 'exp', 'iat', 'iss', 'nonce']:
+            oidc_info.pop(i, None)
 
-        sub = oidc_info['sub']
+        sub = oidc_info[provider.sub_field]
         oidc_user = OidcUser.objects.select_related('user').filter(provider=provider, sub=sub).first()
         if oidc_user:
             oidc_user.oidc_info = oidc_info
             return oidc_user.user, oidc_user
 
-        email = oidc_info['email']
+        email = oidc_info[provider.email_field]
         if User.objects.filter(email=email).exists():
             raise APIException('此邮箱已被注册', status.HTTP_400_BAD_REQUEST)
 
-        username = ori_username = oidc_info['preferred_username']
+        username = ori_username = oidc_info[provider.username_field]
         while len(username) < 4 or User.objects.filter(username=username).exists():
             username = ori_username + random_str(4, False)
 
         user = User(
             username=username,
             email=email,
-            first_name=oidc_info['nickname'] or oidc_info['name'] or username,
-            last_name=oidc_info['given_name'] or '',
+            first_name=oidc_info[provider.name_field],
         )
         oidc_user = OidcUser(
             provider=provider,
@@ -100,17 +95,22 @@ class OidcViewSet(
         """删除多余的 token"""
         if knox_settings.TOKEN_LIMIT_PER_USER:
             user.auth_token_set.filter(
-                pk__in=user.auth_token_set
-                       .order_by('-expiry')
-                       .values('pk')[knox_settings.TOKEN_LIMIT_PER_USER:],
+                pk__in=user.auth_token_set.order_by('-expiry').values('pk')[knox_settings.TOKEN_LIMIT_PER_USER:],
             ).delete()
 
-    @extend_schema(responses=OidcLoginSerializer)
+    @extend_schema(
+        parameters=[
+            OpenApiParameter('redirect', OpenApiTypes.STR, description='1表示直接跳转 否则返回json'),
+            OpenApiParameter('redirect_uri', OpenApiTypes.STR),
+        ],
+        responses=OidcLoginResponseSerializer,
+    )
     @action(['GET'], True)
     def login(self, request: Request, *args, **kwargs):
-        is_redirect = request.query_params.get("redirect")
-        provider = kwargs.get('pk')
-        oidc_provider = self.get_oidc_provider(provider)
+        is_redirect = request.query_params.get('redirect')
+        redirect_uri = request.query_params.get('redirect_uri')
+        provider_name = kwargs.get(self.lookup_field)
+        oidc_provider = self.get_oidc_provider(provider_name)
         nonce = generate_token()
         code_verifier = generate_token()
 
@@ -118,27 +118,39 @@ class OidcViewSet(
             auth_url, csrf_state = oidc_provider.client.create_authorization_url(
                 oidc_provider.well_known['authorization_endpoint'],
                 nonce=nonce,
-                redirect_uri=self.get_redirect_uri(request, provider),
+                redirect_uri=redirect_uri or self.get_redirect_uri(request, provider_name),
                 code_verifier=code_verifier,
+                response_type='code',
+                scope='openid profile email',
             )
+            if oidc_provider.base_url.startswith('http://'):
+                auth_url = auth_url.replace('https://', 'http://', 1)
         except Exception as e:
             raise APIException() from e
         request.session['oidc_state'] = csrf_state
+        print("session_key", request.session.session_key)
 
-        cache.set(f'oidc_state:{provider}:{csrf_state}', (nonce, code_verifier), 60)
+        cache.set(f'oidc_state:{provider_name}:{csrf_state}', (nonce, code_verifier), 60)
 
         if is_redirect == '1':
             return redirect(auth_url)
-        else:
-            return Response({'url': auth_url})
+        return Response({'url': auth_url})
 
-    @extend_schema(responses={200: OidcCallbackSerializer})
+    @extend_schema(
+        parameters=[
+            OpenApiParameter('code', OpenApiTypes.STR, required=True),
+            OpenApiParameter('state', OpenApiTypes.STR, required=True),
+            OpenApiParameter('redirect_uri', OpenApiTypes.STR),
+        ],
+        responses={200: OidcCallbackSerializer},
+    )
     @action(['GET'], True)
     def callback(self, request: Request, *args, **kwargs):
-        provider = kwargs.get('pk')
+        provider = kwargs.get(self.lookup_field)
         oidc_provider = self.get_oidc_provider(provider)
         code = request.GET.get('code')
         state = request.GET.get('state')
+        redirect_uri = request.GET.get('redirect_uri')
 
         if request.session.get('oidc_state') != state:
             raise APIException('Bad Request', status.HTTP_400_BAD_REQUEST)
@@ -150,29 +162,32 @@ class OidcViewSet(
         nonce, code_verifier = state_cache
 
         try:
+            token_endpoint = oidc_provider.well_known['token_endpoint']
+            if oidc_provider.base_url.startswith('http://'):
+                token_endpoint = token_endpoint.replace('https://', 'http://', 1)
             r = oidc_provider.client.fetch_token(
-                oidc_provider.well_known['token_endpoint'],
+                token_endpoint,
                 code=code,
                 state=state,
                 grant_type='authorization_code',
-                redirect_uri=self.get_redirect_uri(request, provider),
                 code_verifier=code_verifier,
+                redirect_uri=redirect_uri or self.get_redirect_uri(request, provider),
             )
         except Exception as e:
             raise APIException('Bad Request', status.HTTP_400_BAD_REQUEST) from e
 
-        access_token = r['access_token']
+        id_token = r['id_token']
         if oidc_provider.private_key:
-            jwe_dict = self.jwe.deserialize_compact(access_token, oidc_provider.private_key)
+            jwe_dict = self.jwe.deserialize_compact(id_token, oidc_provider.private_key)
             jwt_dict = jwt.decode(jwe_dict['payload'], oidc_provider.key_set)
         else:
-            jwt_dict = jwt.decode(access_token, oidc_provider.key_set)
+            jwt_dict = jwt.decode(id_token, oidc_provider.key_set)
 
         now = time.time()
         if (
                 jwt_dict['nonce'] != nonce
                 or jwt_dict['iss'] != oidc_provider.well_known['issuer']
-                or jwt_dict['aud'] != oidc_provider.client_id
+                or (jwt_dict['aud'] != oidc_provider.client_id and oidc_provider.client_id not in jwt_dict['aud'])
                 or jwt_dict['exp'] < now < jwt_dict['iat']
         ):
             raise APIException('Bad Request', status.HTTP_400_BAD_REQUEST)
