@@ -8,6 +8,7 @@ dependencies = [
     'arrow',
     'authlib',
     'celery',
+    'celery-leased-beat',
     'django',
     'django-celery-beat>=2.7.0',
     'django-celery-results',
@@ -34,8 +35,14 @@ dependencies = [
 dev = [
     'django-debug-toolbar',
     'django-stubs',
+    'pytest',
+    'pytest-django',
+    'pytest-xdist',
 ]
 
 [tool.pyright]
 venvPath = '.'
 venv = '.venv'
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "{{ cookiecutter.project_slug }}.settings"

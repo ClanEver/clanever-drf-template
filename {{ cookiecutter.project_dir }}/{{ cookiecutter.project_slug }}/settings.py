@@ -331,7 +331,6 @@ CELERY_BROKER_URL = config.REDIS_URL
 CELERY_BROKER_CONNECTION_RETRY = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BROKER_TRANSPORT_OPTIONS = {'global_keyprefix': '{{ cookiecutter.project_name|trim() }}:'}
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 # 每个工作进程处理的最大任务数
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 500
 # 每个工作进程的最大内存使用量
@@ -343,6 +342,12 @@ CELERY_TASK_QUEUES = (
 )
 # for reverse proxy
 FLOWER_URL = config.FLOWER_URL
+# beat
+CELERY_BEAT_SCHEDULER = 'celery_leased_beat.django.LeasedDjangoScheduler'
+CELERY_LEASE_URL = config.REDIS_URL
+CELERY_LEASE_KEY = '{{ cookiecutter.project_name|trim() }}:celery_lease:lock'
+CELERY_LEASE_LOCK_TTL = 60
+CELERY_LEASE_INTERVAL = 15
 
 # ---------------- Log ----------------
 LOG_PATH = config.LOG_PATH

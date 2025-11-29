@@ -13,4 +13,5 @@ mise trust mise.toml
 mise run db-clean
 mise run db-up-d
 mise run mnm
+uv run -- pytest
 mise run all

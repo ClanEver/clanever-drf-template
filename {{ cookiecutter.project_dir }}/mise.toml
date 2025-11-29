@@ -12,13 +12,13 @@ run = 'cookiecutter https://github.com/ClanEver/clanever-drf-app-template.git'
 [tasks.dev-db]
 run = [
     'mkdir -p ./scripts/test_dev/pgsql ./scripts/test_dev/redis',
-    'D_UID=$(id -u) D_GID=$(id -g) docker compose -f scripts/docker-dev-db.yaml up'
+    'D_UID=$(id -u) D_GID=$(id -g) docker compose -f scripts/docker-dev-db.yaml up',
 ]
 
 [tasks.db-up-d]
 run = [
     'mkdir -p ./scripts/test_dev/pgsql ./scripts/test_dev/redis',
-    'D_UID=$(id -u) D_GID=$(id -g) docker compose -f scripts/docker-dev-db.yaml up --wait --no-recreate'
+    'D_UID=$(id -u) D_GID=$(id -g) docker compose -f scripts/docker-dev-db.yaml up --wait --no-recreate',
 ]
 
 [tasks.db-stop]
@@ -75,3 +75,7 @@ run = 'mise tasks run c-beat ::: c-worker ::: c-flower'
 [tasks.all]
 depends = ["db-up-d"]
 run = 'mise tasks run dev ::: c'
+
+[tasks.test]
+depends = ["db-up-d"]
+run = 'pytest -n auto'
