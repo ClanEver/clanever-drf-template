@@ -9,7 +9,10 @@ from utils.permission import user_is_superuser
 @user_is_superuser
 @xframe_options_sameorigin
 def scalar(request):
-    context = {'title': spectacular_settings.TITLE}
+    context = {
+        'title': spectacular_settings.TITLE,
+        'csrf_header_name': SwaggerView._get_csrf_header_name(None),
+    }
     return render(request, 'scalar.html', context)
 
 

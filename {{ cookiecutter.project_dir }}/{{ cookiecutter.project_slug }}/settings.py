@@ -440,6 +440,12 @@ UNFOLD = {
                 'collapsible': True,
                 'items': [
                     {
+                        'title': 'Scalar',
+                        'icon': 'shuffle',
+                        'link': '/admin/dev_tools/scalar/',
+                        'permission': lambda request: request.user.is_superuser,
+                    },
+                    {
                         'title': 'Swagger',
                         'icon': 'data_object',
                         'link': '/admin/dev_tools/swagger/',
@@ -449,12 +455,6 @@ UNFOLD = {
                         'title': 'Redoc',
                         'icon': 'note_stack',
                         'link': '/admin/dev_tools/redoc/',
-                        'permission': lambda request: request.user.is_superuser,
-                    },
-                    {
-                        'title': 'Scalar',
-                        'icon': 'shuffle',
-                        'link': '/admin/dev_tools/scalar/',
                         'permission': lambda request: request.user.is_superuser,
                     },
                     {

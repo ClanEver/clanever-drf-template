@@ -1,28 +1,31 @@
 {% raw %}<!doctype html>
 <html lang="en">
-    <head>
-        <title>{{ title }} | Scalar</title>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-    </head>
-    <body>
-        <script id="api-reference" data-url="{% url 'schema' %}"></script>
-
-        <script>
-            // https://github.com/scalar/scalar/blob/main/documentation/configuration.md
-            let configuration = {
-                theme: "kepler",
-                hideModels: true,
-                defaultHttpClient: {
-                    targetKey: "python",
-                    clientKey: "requests",
-                },
-            };
-            document.getElementById("api-reference").dataset.configuration =
-                JSON.stringify(configuration);
-        </script>
-
-        <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
-    </body>
+<head>
+    <title>{{ title }} | Scalar</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+<script>
+    // https://github.com/scalar/scalar/blob/main/documentation/configuration.md
+    Scalar.createApiReference('#app', {
+        url: '{% url 'schema' %}',
+        theme: "kepler",
+        defaultHttpClient: {
+            targetKey: "python",
+            clientKey: "httpx_sync",
+        },
+        onBeforeRequest: ({ request }) => {
+            // 添加 CSRF token
+            if (!["GET", undefined].includes(request.method) && request.credentials === "same-origin") {
+                request.headers.set('{{ csrf_header_name }}', '{{ csrf_token }}')
+            }
+            return request
+        },
+    })
+</script>
+</body>
 </html>
 {% endraw %}
